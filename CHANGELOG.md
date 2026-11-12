@@ -8,6 +8,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/check-qml.sh` compiles and lints every QML file with the Qt 6 tools, so errors such as a
+  property-change handler defined twice show up before a release (#96).
+
 ### Changed
 
 - The repository moved to github.com/hellwand/obsbot4linux-dux; the README and the releases link

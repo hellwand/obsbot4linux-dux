@@ -166,6 +166,7 @@ dms ipc call plugins enable obsbot4linuxDux
 
 Then add the `obsbot4linuxDux` widget to a bar in DMS settings.
 After changing QML, run `dms restart` (`plugins reload` keeps cached components).
+Before sending a change, run `scripts/check-qml.sh` (needs the Qt 6 tools; it compiles and lints every QML file).
 
 ## Update
 
