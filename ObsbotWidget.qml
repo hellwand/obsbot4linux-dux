@@ -826,6 +826,9 @@ PluginComponent {
                             id: tabBar
                             width: parent.width
                             model: popout.shownTabs
+                            // Without a camera the cards behind the tabs are unusable; arrange mode
+                            // keeps them (the buttons are its drop targets)
+                            enabled: root.available || root.arranging
                             currentIndex: popout.shownTabs.findIndex(t => t.id === popout.activeTab)
                             onTabClicked: index => root.selectTab(popout.shownTabs[index].id, true)
                         }

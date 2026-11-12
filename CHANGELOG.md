@@ -8,6 +8,12 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Popout: the Tracking, Picture and Device tabs can no longer be switched while no camera is
+  connected, as the cards behind them are unusable then. They work as before while the camera
+  sleeps and in arrange mode (#128).
+
 ## [0.29.0] - 2026-11-12
 
 ### Changed
