@@ -34,7 +34,7 @@ Column {
         if (name === "")
             return;
         newName.text = "";
-        ctl.send(["zone", "view", "save", name], "Saving zone view " + name);
+        ctl.send(["zone", "view", "save", "--", name], "Saving zone view " + name);
     }
 
     width: parent.width
@@ -70,7 +70,7 @@ Column {
                 if (name === "")
                     return;
                 views.renaming = -1;
-                views.ctl.send(["zone", "view", "rename", row.modelData.id, name], "Renaming zone view");
+                views.ctl.send(["zone", "view", "rename", row.modelData.id, "--", name], "Renaming zone view");
             }
 
             width: views.width

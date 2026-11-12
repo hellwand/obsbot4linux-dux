@@ -15,6 +15,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   dimmed, by default); the popout width states its 720 px minimum; the Framing card's Start mode
   chips are listed. Dead code and a stale comment removed; the Audio card's comment corrected (#102).
 
+### Fixed
+
+- Desktop widget: preset and zone view names that start with `-` can be saved and renamed. They were
+  read as an option, so nothing was stored (#103).
+
 ## [0.27.1] - 2026-11-12
 
 ### Added

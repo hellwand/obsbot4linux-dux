@@ -68,7 +68,7 @@ SectionCard {
                 if (name === "")
                     return;
                 section.renaming = -1;
-                section.ctl.presetCommand(["preset", "rename", row.modelData, name], "Renaming preset " + (row.modelData + 1));
+                section.ctl.presetCommand(["preset", "rename", row.modelData, "--", name], "Renaming preset " + (row.modelData + 1));
             }
 
             width: section.width - section.padding * 2
