@@ -25,6 +25,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   staying black under "Preview is on". While the preview is off and another app reads the camera,
   the hint says so. The Stop preview button of "Preview unavailable" is hidden while the preview is
   off (#117).
+- Desktop widget: on the lock screen it is inert. It starts no watcher and shows no picture or
+  controls, and the watcher no longer comes back after it was switched off. The widget used to be
+  fully live there (#118).
 
 ## [0.28.0] - 2026-11-12
 

@@ -51,7 +51,14 @@ Item {
         started = true;
         Qt.callLater(() => console.info("obsbot4linuxDux: started as " + watcher.instanceName));
     }
-    onActiveChanged: logStart()
+    onActiveChanged: {
+        logStart();
+        // Off: a pending restart is dropped, so a stopped watch does not come back. Set the
+        // process by hand: after a restart or Retry the `running: watcher.active` binding is gone.
+        if (!active)
+            restartTimer.stop();
+        process.running = active;
+    }
     Component.onCompleted: logStart()
 
     onVideoNodeChanged: {
@@ -110,6 +117,11 @@ Item {
         }
         onExited: exitCode => {
             watcher.toolMissing = exitCode === 127;
+            // Switched off on purpose (active went false): no backoff, no restart
+            if (!watcher.active) {
+                watcher.stopped();
+                return;
+            }
             restartTimer.interval = watcher.toolMissing ? 10000 : watcher.backoff;
             console.warn("obsbot4linuxDux (" + watcher.instanceName + "): watch exited with code " + exitCode + ", restart in " + restartTimer.interval / 1000 + " s");
             watcher.backoff = Math.min(watcher.backoff * 2, 30000);
@@ -121,7 +133,7 @@ Item {
     Timer {
         id: restartTimer
         onTriggered: {
-            if (!process.running)
+            if (watcher.active && !process.running)
                 process.running = true;
         }
     }

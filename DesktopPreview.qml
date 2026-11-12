@@ -41,6 +41,10 @@ DesktopPluginComponent {
     // DMS unloads desktop widgets while the desktop is being edited, but the editor shows its own
     // copy of them: that one is inert
     readonly property bool editing: DesktopWidgetRegistry.editing
+    // On the lock screen the widget is inert too: no picture, no controls, no watcher. DMS declares
+    // and sets `lockScreen` on the plugin component (DesktopPluginComponent, in DMS 2.0.0 as well),
+    // a moment after this object is created.
+    readonly property bool inert: editing || lockScreen
 
     // Set by DMS (DesktopWidgetContent) when the component declares it; for the log and to
     // fit the card to the screen
@@ -62,12 +66,12 @@ DesktopPluginComponent {
     readonly property bool live: available && awake
     readonly property string device: cam.device ?? ""
     readonly property bool previewReady: device !== "" && videoNode !== ""
-    // Loads Qt Multimedia; not while editing
-    readonly property bool interactionActive: !editing
+    // Loads Qt Multimedia; not while inert
+    readonly property bool interactionActive: !inert
 
     // Stop rules: whenever the camera goes away (unplugged, lost) or falls asleep while the preview
     // was running (a preview started while it sleeps stays on: opening the stream wakes it, #93),
-    // and while editing. Only the camera's own report counts as awake here, not the optimistic
+    // and while inert (editing, lock screen). Only the camera's own report counts as awake here, not the optimistic
     // value shown meanwhile (#98). DMS also unloads the widget when it is disabled or removed,
     // which closes the camera. Otherwise the preview keeps running until the user stops it.
     property bool previewWasAwake: false
@@ -84,10 +88,10 @@ DesktopPluginComponent {
         if (!available)
             previewOn = false;
     }
-    onEditingChanged: {
-        if (editing)
+    onEditingChanged: applySize()
+    onInertChanged: {
+        if (inert)
             previewOn = false;
-        applySize();
     }
 
     // Same keys and arguments as ObsbotWidget.trackingModes (`obsbot4linux tracking <arg>`)
@@ -220,7 +224,7 @@ DesktopPluginComponent {
     }
 
     // The list is read when the camera shows up (and again after a watch restart), not with every event
-    readonly property bool presetsWanted: available && has("preset") && !editing
+    readonly property bool presetsWanted: available && has("preset") && !inert
     onPresetsWantedChanged: {
         if (presetsWanted)
             refreshPresets();
@@ -268,7 +272,7 @@ DesktopPluginComponent {
     // Errors are logged and shown as a toast by the watcher
     CameraWatch {
         id: watch
-        active: true
+        active: !root.lockScreen
         instanceName: "desktop widget" + (root.screen?.name ? " on screen " + root.screen.name : "")
         device: root.device
         onStateEvent: next => optimistic.receive(next)
@@ -307,7 +311,7 @@ DesktopPluginComponent {
                     width: root.pictureWidth
                     height: Math.round(width * 9 / 16)
                     ctl: root
-                    interactive: !root.editing
+                    interactive: !root.inert
                     dropBodyWhenTight: true
 
                     // On air while the picture is live (the hover overlay keeps it visible)
@@ -328,7 +332,7 @@ DesktopPluginComponent {
                     width: root.sideWidth
                     height: frame.height
                     ctl: root
-                    interactive: !root.editing
+                    interactive: !root.inert
                 }
             }
 
@@ -336,7 +340,7 @@ DesktopPluginComponent {
                 id: bottomRow
                 width: parent.width
                 ctl: root
-                interactive: !root.editing
+                interactive: !root.inert
             }
         }
     }
