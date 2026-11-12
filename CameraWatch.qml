@@ -6,7 +6,8 @@ import qs.Services
 // The `obsbot4linux watch` of one instance (bar widget, Control Center tile or detail page,
 // desktop widget) and the video node behind the camera's by-id path. Lines from obsbot4linux
 // come out as `stateEvent` and `reply`; errors are logged and shown as a toast. When the process
-// ends, `stopped` and a restart after 2 s, doubling up to 30 s until a state event arrives again.
+// ends, `stopped` and a restart after 2 s, doubling up to 30 s until a state event arrives again
+// (no restart while `active` is false).
 Item {
     id: watcher
 
