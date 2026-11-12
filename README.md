@@ -116,7 +116,7 @@ Widgets (it is listed next to the other desktop widgets) and place it like any o
 popout it has one fixed layout, a single card with the controls arranged
 around the picture:
 
-- **Picture area** (640 × 360, 16:9, top left): dark with the "Preview is off" hint and a **Start
+- **Picture area** (640 × 360 on a normal screen, smaller on a narrow or short one, 16:9, top left): dark with the "Preview is off" hint and a **Start
   preview** button while the preview is off (also while the camera is asleep, the preview wakes it; Retry when
   the camera is not reachable); the live picture while it runs, with **Stop preview** on hover. Stopping frees the
   camera.

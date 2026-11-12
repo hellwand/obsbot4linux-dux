@@ -10,10 +10,10 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ### Fixed
 
-- Desktop widget: on a screen narrower than about 930 logical px (for example 1280 px at scale 1.5)
-  the picture now shrinks, 16:9 and down to 320 px wide, until the whole card fits. The shell
-  refused the fixed 640 px size without a message and the side column was cut off. The size is
-  asked for again when the screen changes (#114).
+- Desktop widget: on a narrow or short screen (narrower than about 900 logical px, for example
+  1280 px at scale 1.5) the picture now shrinks, 16:9 and down to 320 px wide, so that the card
+  fits. The shell refused the fixed 640 px size without a message and the side column was cut off.
+  The size is asked for again when the screen changes (#114).
 
 ## [0.28.0] - 2026-11-12
 

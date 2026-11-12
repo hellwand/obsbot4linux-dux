@@ -29,7 +29,7 @@ DesktopPluginComponent {
     // what is left of the screen for the picture, beside the side column and above the bottom row
     readonly property real fitWidth: screenWidth - sideWidth - Theme.spacingM - Theme.spacingL * 2
     readonly property real fitHeight: screenHeight - bottomRow.implicitHeight - Theme.spacingM - Theme.spacingL * 2
-    readonly property real pictureWidth: Math.max(pictureMinWidth, Math.min(pictureMaxWidth, fitWidth, Math.floor(fitHeight * 16 / 9)))
+    readonly property real pictureWidth: Math.max(pictureMinWidth, Math.min(pictureMaxWidth, fitWidth, Math.floor(Math.floor(fitHeight) * 16 / 9)))
     // the side column is as wide as its widest chip row (measured, see DesktopSide.naturalWidth)
     readonly property real sideWidth: sideColumn.naturalWidth
     readonly property real contentWidth: pictureWidth + sideWidth + Theme.spacingM + Theme.spacingL * 2
@@ -42,7 +42,8 @@ DesktopPluginComponent {
     // copy of them: that one is inert
     readonly property bool editing: DesktopWidgetRegistry.editing
 
-    // Set by DMS (DesktopWidgetContent) when the component declares it; for the log
+    // Set by DMS (DesktopWidgetContent) when the component declares it; for the log and to
+    // fit the card to the screen
     property var screen: null
 
     // Camera state from obsbot4linux watch, same fields as the popout reads, with the changes sent
