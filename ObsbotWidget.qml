@@ -637,8 +637,12 @@ PluginComponent {
     property int shownColumns: 2
     // 920 px, but at most 90 % of the screen (only below ~1020 px wide screens, e.g. scaled
     // displays) and at least 720 px so the right column keeps its minimum width
+    // Theme has no popout width tokens; these are this layout's own sizes, named in one place
     readonly property int minRightWidth: 320
-    popoutWidth: shownColumns >= 2 ? Math.max(720, Math.min(920, Screen.width > 0 ? Math.round(Screen.width * 0.9) : 920)) : 380
+    readonly property int popoutWidthTwoColumns: 920
+    readonly property int popoutWidthTwoColumnsMin: 720
+    readonly property int popoutWidthOneColumn: 380
+    popoutWidth: shownColumns >= 2 ? Math.max(popoutWidthTwoColumnsMin, Math.min(popoutWidthTwoColumns, Screen.width > 0 ? Math.round(Screen.width * 0.9) : popoutWidthTwoColumns)) : popoutWidthOneColumn
 
     // The bar draws the pill; plugins only provide the content (same as the built-in widgets).
     // Right click is sleep/wake; left click opens the popout.
@@ -915,7 +919,7 @@ PluginComponent {
                     height: tabBar.height
                     radius: Theme.cornerRadius
                     color: "transparent"
-                    border.width: 2
+                    border.width: Theme.outlineWidthFocused
                     border.color: Theme.primary
                 }
             }

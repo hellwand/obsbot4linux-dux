@@ -23,7 +23,7 @@ Column {
         slider.value = item.value;
     }
 
-    spacing: 2
+    spacing: Theme.spacingXXS
 
     // Dragging assigns slider.value and breaks its binding, so push later changes
     // (reset to defaults, values read from the camera) explicitly

@@ -22,7 +22,7 @@ Item {
         anchors.right: toggle.left
         anchors.rightMargin: Theme.spacingM
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 2
+        spacing: Theme.spacingXXS
 
         StyledText {
             text: row.label

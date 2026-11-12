@@ -21,6 +21,7 @@ DesktopPluginComponent {
     // (transient, not saved). Without it the saved size applies. DMS refuses a request that is
     // larger than the screen without a message, so on a narrow or short screen the picture shrinks
     // (16:9, down to pictureMinWidth) until the whole card fits.
+    // Theme has no picture or card size tokens: the picture bounds and defaultHeight are this layout's own sizes
     readonly property real pictureMaxWidth: 640
     readonly property real pictureMinWidth: 320
     // logical size of the screen, the same numbers DMS checks the request against

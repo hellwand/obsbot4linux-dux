@@ -140,7 +140,7 @@ ClippingRectangle {
             height: Math.max(0, (b[3] - b[1]) * parent.height)
             color: "transparent"
             radius: Theme.cornerRadius / 2
-            border.width: 2
+            border.width: Theme.outlineWidthFocused
             // green while the camera has the target, warning colour while it searches
             border.color: frame.ctl.cam?.target?.detected === false ? Theme.warning : Theme.success
 

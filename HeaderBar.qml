@@ -33,7 +33,7 @@ Item {
         anchors.leftMargin: Theme.spacingM
         anchors.right: editButton.left
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 2
+        spacing: Theme.spacingXXS
 
         StyledText {
             text: "OBSBOT Control"

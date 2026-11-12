@@ -8,6 +8,12 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Changed
+
+- Layout: the 2 px gaps and borders use the shell's Theme tokens (`spacingXXS`, `outlineWidthFocused`)
+  instead of fixed numbers, with the same size at the default Theme. The popout widths and the
+  desktop picture bounds have no matching Theme token and are named properties now (#123).
+
 ### Fixed
 
 - Desktop widget: on a narrow or short screen (narrower than about 900 logical px, for example
