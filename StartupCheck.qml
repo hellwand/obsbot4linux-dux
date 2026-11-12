@@ -13,6 +13,7 @@ QtObject {
     // exclusive upper bound
     readonly property var maxVersion: [1, 0, 0]
     readonly property string releases: "https://github.com/hellwand/obsbot4linux/releases"
+    readonly property string widgetReleases: "https://github.com/hellwand/obsbot4linux-dux/releases"
 
     // "obsbot4linux 0.2.0" -> [0, 2, 0]; null when there is no version in the text
     function parseVersion(text) {
@@ -31,10 +32,11 @@ QtObject {
     function check(done) {
         Proc.runCommand("obsbot4linuxDux.depCheck", ["sh", "-c", "command -v obsbot4linux >/dev/null && obsbot4linux --version"], (stdout, exitCode) => {
             const minimum = minVersion.join(".");
+            const range = minimum + " or newer (before " + maxVersion[0] + ".0)";
             if (exitCode !== 0) {
                 done({
                     "title": "obsbot4linux is required",
-                    "details": "The 'obsbot4linux' tool is not installed or not on your PATH. This plugin needs obsbot4linux " + minimum + " or newer.\n\nInstall it from " + releases + " (packages for Arch, Debian/Ubuntu, Fedora/openSUSE and a tarball), then enable this plugin again."
+                    "details": "The 'obsbot4linux' tool is not installed or not on your PATH. This plugin needs obsbot4linux " + range + ".\n\nInstall it from " + releases + " (packages for Arch, Debian/Ubuntu, Fedora/openSUSE and a tarball), then enable this plugin again."
                 });
                 return;
             }
@@ -46,13 +48,13 @@ QtObject {
             if (version && !isOlder(version, maxVersion)) {
                 done({
                     "title": "obsbot4linux " + maxVersion[0] + ".0 or newer needs a newer widget",
-                    "details": "Installed: " + stdout.trim() + ". This widget version works with obsbot4linux " + minimum + " or newer but older than " + maxVersion[0] + ".0, because obsbot4linux " + maxVersion[0] + ".0 and newer speak a new protocol.\n\nInstall widget " + maxVersion[0] + ".0 or newer, then enable this plugin again."
+                    "details": "Installed: " + stdout.trim() + ". This widget version works with obsbot4linux " + minimum + " or newer but older than " + maxVersion[0] + ".0, because obsbot4linux " + maxVersion[0] + ".0 and newer speak a new protocol.\n\nUpdate this plugin (obsbot4linux-dux) to " + maxVersion[0] + ".0 or newer from " + widgetReleases + ", then enable it again."
                 });
                 return;
             }
             done({
                 "title": "obsbot4linux " + minimum + " or newer is required",
-                "details": "Installed: " + stdout.trim() + ". This plugin needs obsbot4linux " + minimum + " or newer, which fixes zone tracking ending in Static.\n\nUpdate it from " + releases + ", then enable this plugin again."
+                "details": "Installed: " + stdout.trim() + ". This plugin needs obsbot4linux " + range + "; " + minimum + " fixes zone tracking ending in Static.\n\nUpdate it from " + releases + ", then enable this plugin again."
             });
         });
     }
