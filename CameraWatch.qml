@@ -32,8 +32,11 @@ Item {
 
     // Retry button: start the watcher again now
     function refresh() {
-        if (active && !process.running)
+        if (active && !process.running) {
+            // The pending restart would start the running watch a second time
+            restartTimer.stop();
             process.running = true;
+        }
     }
 
     function log(text) {
@@ -79,6 +82,7 @@ Item {
         }
         if (msg.event === "state") {
             backoff = 2000;
+            toolMissing = false;
             stateEvent(msg.state);
         } else if (msg.id !== undefined) {
             if (msg.ok === false) {
@@ -116,6 +120,9 @@ Item {
 
     Timer {
         id: restartTimer
-        onTriggered: process.running = true
+        onTriggered: {
+            if (!process.running)
+                process.running = true;
+        }
     }
 }

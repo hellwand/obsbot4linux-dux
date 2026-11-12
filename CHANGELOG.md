@@ -17,6 +17,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Desktop widget: its options sheet no longer shows the bar and popout toggles, which wrote into
   the desktop instance's own config and had no effect. It shows one line pointing to
   Settings → Plugins instead (#115).
+- Watcher: "Control tool not found" goes away as soon as obsbot4linux sends its first state after it is
+  back. A Retry (or a popout opened) during the restart backoff no longer leaves the restart timer
+  armed, so the next exit waits the backoff again (#116).
 
 ## [0.28.0] - 2026-11-12
 
