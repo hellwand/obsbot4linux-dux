@@ -164,6 +164,7 @@ SectionCard {
         DButton {
             text: "Return here"
             iconName: "my_location"
+            enabled: section.ctl.live
             onClicked: section.ctl.send(["zone", "return-here"], "Setting the zone return position")
         }
 

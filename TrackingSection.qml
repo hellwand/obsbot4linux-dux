@@ -71,6 +71,7 @@ SectionCard {
         DButton {
             text: "Return here"
             iconName: "my_location"
+            enabled: section.ctl.live
             onClicked: section.ctl.send(["hand", "return-here"], "Setting the hand return position")
         }
 

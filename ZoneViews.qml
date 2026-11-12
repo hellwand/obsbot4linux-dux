@@ -31,7 +31,7 @@ Column {
     }
     function save() {
         const name = newName.text.trim();
-        if (name === "")
+        if (!ctl.live || name === "")
             return;
         newName.text = "";
         ctl.send(["zone", "view", "save", "--", name], "Saving zone view " + name);
@@ -201,7 +201,7 @@ Column {
     DButton {
         text: "Save current pose as view"
         iconName: "save"
-        enabled: newName.text.trim() !== ""
+        enabled: views.ctl.live && newName.text.trim() !== ""
         onClicked: views.save()
     }
 
