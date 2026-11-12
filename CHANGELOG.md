@@ -19,7 +19,7 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 - Desktop widget: preset and zone view names that start with `-` can be saved and renamed. They were
   read as an option, so nothing was stored (#103).
-- Start mode chips: a start mode the widget cannot set (such as hand) no longer shows "Not set"; no
+- Popout cards: a start mode the widget cannot set (such as hand) no longer shows "Not set"; no
   chip is selected. The stored start pose no longer reads "pan NaN°" while only the mode is known.
   The popout header's status line stays on one line and is elided instead of running under the
   buttons. The hand axis switches stay hidden when the camera's answer has no axis data (#104).
