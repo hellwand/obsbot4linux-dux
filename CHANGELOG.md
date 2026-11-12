@@ -8,6 +8,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+## [0.27.1] - 2026-11-12
+
 ### Added
 
 - `scripts/check-qml.sh` compiles and lints every QML file with the Qt 6 tools, so errors such as a
