@@ -8,6 +8,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+## [0.29.1] - 2026-11-12
+
 ### Fixed
 
 - Popout: the Tracking, Picture and Device tabs are greyed out and can no longer be switched while
