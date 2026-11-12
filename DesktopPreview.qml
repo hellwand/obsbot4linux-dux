@@ -14,12 +14,22 @@ import qs.Modules.Plugins
 DesktopPluginComponent {
     id: root
 
-    // Fixed layout, one card: the 16:9 picture (640 x 360) with the status, tracking mode and
-    // Sleep / Wake in a column to its right and zoom and presets in a row below it. DMS keeps one
-    // saved size per widget and the bottom row's height depends on the fonts and the presets, so
-    // the widget asks once for the size of its content with requestResize (transient, not saved).
-    // Without it the saved size applies.
-    readonly property real pictureWidth: 640
+    // Fixed layout, one card: the 16:9 picture (640 x 360 on a normal screen) with the status,
+    // tracking mode and Sleep / Wake in a column to its right and zoom and presets in a row below
+    // it. DMS keeps one saved size per widget and the bottom row's height depends on the fonts and
+    // the presets, so the widget asks once for the size of its content with requestResize
+    // (transient, not saved). Without it the saved size applies. DMS refuses a request that is
+    // larger than the screen without a message, so on a narrow or short screen the picture shrinks
+    // (16:9, down to pictureMinWidth) until the whole card fits.
+    readonly property real pictureMaxWidth: 640
+    readonly property real pictureMinWidth: 320
+    // logical size of the screen, the same numbers DMS checks the request against
+    readonly property real screenWidth: screen?.width ?? Number.POSITIVE_INFINITY
+    readonly property real screenHeight: screen?.height ?? Number.POSITIVE_INFINITY
+    // what is left of the screen for the picture, beside the side column and above the bottom row
+    readonly property real fitWidth: screenWidth - sideWidth - Theme.spacingM - Theme.spacingL * 2
+    readonly property real fitHeight: screenHeight - bottomRow.implicitHeight - Theme.spacingM - Theme.spacingL * 2
+    readonly property real pictureWidth: Math.max(pictureMinWidth, Math.min(pictureMaxWidth, fitWidth, Math.floor(fitHeight * 16 / 9)))
     // the side column is as wide as its widest chip row (measured, see DesktopSide.naturalWidth)
     readonly property real sideWidth: sideColumn.naturalWidth
     readonly property real contentWidth: pictureWidth + sideWidth + Theme.spacingM + Theme.spacingL * 2
@@ -224,6 +234,9 @@ DesktopPluginComponent {
         }
     }
 
+    // the screen or the side column's width changed: ask again (layout only, no retry)
+    onContentWidthChanged: applySize()
+
     function applySize() {
         if (!requestResize || !clearResize)
             return;
@@ -316,6 +329,7 @@ DesktopPluginComponent {
             }
 
             DesktopBottom {
+                id: bottomRow
                 width: parent.width
                 ctl: root
                 interactive: !root.editing

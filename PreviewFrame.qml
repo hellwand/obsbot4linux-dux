@@ -6,8 +6,8 @@ import qs.DCommon.Widgets
 // The preview picture with its overlay: live video while the preview runs, otherwise a hint with
 // one action (start preview, wake camera, retry when not reachable). Hovering the running video
 // shows the same kind of hint over it, with a button to stop the preview. Fills the size it is
-// given (the popout card makes it 16:9; the desktop widget lets the user resize it), the video is
-// fitted inside. Used by the popout's PreviewPane and the desktop widget.
+// given (the popout card and the desktop widget make it 16:9), the video is fitted inside. Used by
+// the popout's PreviewPane and the desktop widget.
 //
 // ctl is what the frame needs from the camera: available, toolMissing, awake, live, previewReady,
 // videoNode, previewOn (read/write), interactionActive, refresh(), assumeAwake(), awakeReported.
@@ -17,7 +17,7 @@ ClippingRectangle {
 
     property var ctl
     property bool interactive: true
-    // Desktop widget: drop the hint's text body when the resized frame is too small for it
+    // Desktop widget: drop the hint's text body when the frame is too small for it (a narrow screen)
     property bool dropBodyWhenTight: false
 
     // Without qt6-multimedia PreviewVideo.qml fails to load; the frame then says so
