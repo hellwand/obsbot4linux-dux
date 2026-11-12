@@ -119,6 +119,11 @@ DesktopPluginComponent {
         watch.write(id, args);
     }
 
+    // Retry button: start the watcher again now
+    function refresh() {
+        watch.refresh();
+    }
+
     // The camera's own state says awake (without the optimistic patches)
     readonly property bool awakeReported: optimistic.truth.available === true && optimistic.truth.status?.asleep === false
 
