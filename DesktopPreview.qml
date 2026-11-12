@@ -253,10 +253,13 @@ DesktopPluginComponent {
 
     // One preview at a time: starting one in the popout switches this one off and vice versa
     PreviewClaim {
+        id: previewClaim
         pluginId: root.pluginId
         holding: root.previewOn
         onDisplaced: root.previewOn = false
     }
+    // A preview of ours runs on some surface (this one, the popout or another desktop widget)
+    readonly property bool previewRunning: previewOn || previewClaim.anyRunning
 
     OptimisticState {
         id: optimistic

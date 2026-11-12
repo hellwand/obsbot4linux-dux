@@ -10,7 +10,8 @@ import qs.DCommon.Widgets
 // the popout's PreviewPane and the desktop widget.
 //
 // ctl is what the frame needs from the camera: available, toolMissing, awake, live, previewReady,
-// videoNode, previewOn (read/write), interactionActive, refresh(), assumeAwake(), awakeReported.
+// videoNode, previewOn (read/write), previewRunning (a preview of ours runs on any surface),
+// interactionActive, refresh(), assumeAwake(), awakeReported.
 // interactive: false ignores hover and button (desktop edit mode).
 ClippingRectangle {
     id: frame
@@ -36,10 +37,11 @@ ClippingRectangle {
     // The video component gave up (camera busy) or Qt has no device for the node: say so instead of a black picture
     readonly property string videoFailure: ctl.previewOn && ctl.available && !videoMissing ? (videoLoader.item?.failure ?? "") : ""
     readonly property bool videoFailed: videoFailure !== ""
-    // Preview off while the camera is read. A list of only "qs" is the shell's own preview, not
-    // another app; an empty list (an app obsbot4linux cannot name) still counts
+    // The camera is read while this frame's preview is off, and no preview of ours runs on any
+    // surface (the popout, a desktop widget): another app has it. Qt's own reads are not named by
+    // obsbot4linux, so an empty list counts as an app; a list of only "qs" is the shell itself.
     readonly property var streamingApps: ctl.cam?.streaming_apps ?? []
-    readonly property bool otherAppStreams: !ctl.previewOn && ctl.cam?.streaming === true && !(streamingApps.length > 0 && streamingApps.every(a => a === "qs"))
+    readonly property bool otherAppStreams: !(ctl.previewRunning ?? ctl.previewOn) && ctl.cam?.streaming === true && !(streamingApps.length > 0 && streamingApps.every(a => a === "qs"))
     readonly property bool waking: ctl.previewOn && ctl.available && !videoMissing && !videoFailed && (!ctl.awake || (startedAsleep && !frameSeen && !ctl.awakeReported))
     readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing && !videoFailed && !waking
     readonly property bool overlayShown: !previewShown || (interactive && frameHover.hovered)
