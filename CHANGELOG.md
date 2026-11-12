@@ -8,6 +8,12 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Changed
+
+- The repository moved to github.com/hellwand/obsbot4linux-dux; the README and the releases link
+  in the startup check point at the new addresses. Existing installs keep working through
+  GitHub's redirect; a reinstall picks up the new address (#94).
+
 ## [0.27.0] - 2026-10-31
 
 ### Fixed

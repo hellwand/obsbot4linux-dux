@@ -1,14 +1,14 @@
 # obsbot4linux-dux
 
 Dux (DankMaterialShell) bar widget and desktop preview for OBSBOT webcams, the desktop
-frontend of [obsbot4linux](https://github.com/nofuturekid/obsbot4linux). Formerly `dms-obsbot-control`.
+frontend of [obsbot4linux](https://github.com/hellwand/obsbot4linux). Formerly `dms-obsbot-control`.
 
 ![Popout with the preview off](assets/screenshot.png)
 
 ## Supported cameras
 
 The widget supports every camera that
-[obsbot4linux supports](https://github.com/nofuturekid/obsbot4linux#supported-cameras),
+[obsbot4linux supports](https://github.com/hellwand/obsbot4linux#supported-cameras),
 currently the **OBSBOT Tiny 2 Lite**. It takes the camera's name and video device
 from obsbot4linux, and shows only the cards the camera can do (its
 `capabilities`).
@@ -86,7 +86,7 @@ On air: a red dot on the bar icon shows whenever an application streams from the
 camera (a browser, OBS, ffmpeg, the widget's own preview). The tooltip and the
 popout header add "On air: Chrome" and the like, the Control Center tile "On air".
 This relies on obsbot4linux's detection of
-[streaming applications](https://github.com/nofuturekid/obsbot4linux#streaming-applications),
+[streaming applications](https://github.com/hellwand/obsbot4linux#streaming-applications),
 which looks at processes that map the camera's capture buffers.
 
 Control Center tile: the icon wakes or sleeps the camera, the subtitle shows its
@@ -140,7 +140,7 @@ corner shows that.
 - The desktop widget runs its own `obsbot4linux watch`, like the Control Center tile.
 - While the desktop is being edited the widget is inert (no buttons, no hover).
 
-Camera access goes through [OBSBot4Linux](https://github.com/nofuturekid/obsbot4linux) (`obsbot4linux`):
+Camera access goes through [OBSBot4Linux](https://github.com/hellwand/obsbot4linux) (`obsbot4linux`):
 the widget keeps one `obsbot4linux watch` running, gets every state change as an event
 (also changes made from the CLI or by the camera itself) and sends commands on
 its stdin. Desk and Whiteboard tracking are not available with obsbot4linux. The bar pill is hidden while no supported
@@ -152,14 +152,14 @@ Needs `obsbot4linux` 0.7.1 or newer on PATH; the plugin checks this when it is
 enabled and refuses to activate without it (the camera itself does not have to
 be plugged in). Packages for Arch, Debian/Ubuntu, Fedora/openSUSE
 and a plain tarball are on its
-[releases page](https://github.com/nofuturekid/obsbot4linux/releases). The live preview
+[releases page](https://github.com/hellwand/obsbot4linux/releases). The live preview
 also needs `qt6-multimedia`; without it the preview frame says so and every
 other control still works.
 
 From the DMS plugin browser, or manually:
 
 ```sh
-git clone https://github.com/nofuturekid/obsbot4linux-dux.git \
+git clone https://github.com/hellwand/obsbot4linux-dux.git \
     ~/.config/DankMaterialShell/plugins/obsbot4linuxDux
 dms ipc call plugins enable obsbot4linuxDux
 ```

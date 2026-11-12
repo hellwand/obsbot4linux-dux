@@ -8,7 +8,7 @@ import qs.Common
 // The camera itself is not required, the widget copes with it being unplugged.
 QtObject {
     readonly property var minVersion: [0, 7, 1]
-    readonly property string releases: "https://github.com/nofuturekid/obsbot4linux/releases"
+    readonly property string releases: "https://github.com/hellwand/obsbot4linux/releases"
 
     // "obsbot4linux 0.2.0" -> [0, 2, 0]; null when there is no version in the text
     function parseVersion(text) {
