@@ -101,7 +101,7 @@ Item {
             }
         }
 
-        // Another application reads the camera
+        // Any application reads the camera, the widget's own preview included
         Row {
             id: airRow
             anchors.right: parent.right

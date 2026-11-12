@@ -43,6 +43,7 @@ Item {
         }
 
         Row {
+            width: parent.width
             spacing: Theme.spacingXS
 
             DIcon {
@@ -64,6 +65,10 @@ Item {
 
             StyledText {
                 anchors.verticalCenter: parent.verticalCenter
+                // one line, elided: a long status must not run under the buttons on the right
+                width: parent.width - (spinner.visible ? spinner.width + parent.spacing : 0)
+                maximumLineCount: 1
+                elide: Text.ElideRight
                 // the camera model, then its state: the title is the plugin's name
                 text: bar.ctl.arranging ? "Drag a card by its handle to move it." : bar.ctl.summary
                 color: Theme.surfaceVariantText

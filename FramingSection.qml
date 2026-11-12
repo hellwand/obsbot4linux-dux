@@ -18,9 +18,10 @@ SectionCard {
         { label: "Headless", arg: "headless", key: "headless" },
         { label: "Group", arg: "group", key: "group" }
     ]
+    // -1 (no chip selected) for a start mode this widget cannot set, such as hand
     readonly property int startModeIndex: {
         const key = String(startPose?.ai_mode ?? "").replace("-", "_");
-        return Math.max(0, startModes.findIndex(m => m.key === key));
+        return startModes.findIndex(m => m.key === key);
     }
 
     title: "Framing"
@@ -159,9 +160,9 @@ SectionCard {
 
             StyledText {
                 width: parent.width
-                visible: section.startPose !== null
+                visible: section.startPose?.pan != null
                 wrapMode: Text.WordWrap
-                text: section.startPose ? "pan " + section.ctl.degrees(section.startPose.pan) + " · tilt " + section.ctl.degrees(section.startPose.tilt) + " · zoom " + Number(section.startPose.zoom).toFixed(2) + "×" : ""
+                text: section.startPose?.pan != null ? "pan " + section.ctl.degrees(section.startPose.pan) + " · tilt " + section.ctl.degrees(section.startPose.tilt) + " · zoom " + Number(section.startPose.zoom).toFixed(2) + "×" : ""
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }

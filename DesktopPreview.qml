@@ -102,7 +102,7 @@ DesktopPluginComponent {
     readonly property real zoomFactor: cam.zoom?.factor ?? 1
     // [min, max] zoom factor; [1, 1] until obsbot4linux reported its limits
     readonly property var zoomRange: cam.limits?.zoom ?? [1, 1]
-    // Another application reads the camera (the own preview is not counted: the panel shows no picture then)
+    // Any application reads the camera, the widget's own preview included (obsbot4linux's kernel probe)
     readonly property bool streaming: cam.streaming === true
 
     function has(name) {

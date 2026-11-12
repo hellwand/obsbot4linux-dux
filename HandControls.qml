@@ -142,7 +142,7 @@ Column {
 
     ToggleRow {
         width: parent.width
-        visible: hand.ctl.has("hand_axes") && hand.ctl.cam.hand?.pan_enabled !== undefined
+        visible: hand.ctl.has("hand_axes") && hand.ctl.cam.hand?.pan_enabled != null
         label: "Hand moves pan"
         description: "Off: the pan axis stays where it is"
         checked: hand.ctl.cam.hand?.pan_enabled === true
@@ -151,7 +151,7 @@ Column {
 
     ToggleRow {
         width: parent.width
-        visible: hand.ctl.has("hand_axes") && hand.ctl.cam.hand?.tilt_enabled !== undefined
+        visible: hand.ctl.has("hand_axes") && hand.ctl.cam.hand?.tilt_enabled != null
         label: "Hand moves tilt"
         description: "Off: the tilt axis stays where it is"
         checked: hand.ctl.cam.hand?.tilt_enabled === true
