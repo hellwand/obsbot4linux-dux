@@ -30,8 +30,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Presets card and desktop bottom row: without a camera they no longer say "Reading presets…", and
   with obsbot4linux 0.13 an unanswered list shows "Could not read the presets". "Save current
   pose" is enabled only while the camera is live (#106).
-- The zone and hand "Return here" buttons and "Save current pose as view" are off
-  while the camera sleeps, because the command fails with the pose the camera reports then (#107).
+- The zone and hand "Return here" buttons and "Save current pose as view" are off while the camera
+  sleeps, because the command fails with the pose the camera reports then (#107).
 
 ## [0.27.1] - 2026-11-12
 
