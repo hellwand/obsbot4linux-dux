@@ -20,6 +20,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Watcher: "Control tool not found" goes away as soon as obsbot4linux sends its first state after it is
   back. A Retry (or a popout opened) during the restart backoff no longer leaves the restart timer
   armed, so the next exit waits the backoff again (#116).
+- Preview: when another app holds the camera, or Qt finds no video device for it, the picture now
+  says "Camera is in use by another app" or "Camera not found" with a Stop preview button instead of
+  staying black under "Preview is on". While the preview is off and another app reads the camera,
+  the hint says so. The Stop preview button of "Preview unavailable" is hidden while the preview is
+  off (#117).
 
 ## [0.28.0] - 2026-11-12
 

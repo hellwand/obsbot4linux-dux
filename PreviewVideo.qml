@@ -18,8 +18,15 @@ Item {
     // device for a moment and the first start fails: retry a few times instead of staying black.
     property bool restarting: false
     property int retries: 0
+    // Set when the retries ran out: Qt reports the camera as busy or unusable. Cleared with the next
+    // start or stop
+    property string error: ""
+    // Why the picture stays black, for the hint: "" while all is well, "busy" after the error limit,
+    // "missing" when the video node is known but Qt lists no such device
+    readonly property string failure: !running ? "" : error !== "" ? "busy" : (node !== "" && device === null ? "missing" : "")
     onRunningChanged: {
         retries = 0;
+        error = "";
         hasFrame = false;
     }
     // A frame has arrived since the camera was switched on
@@ -51,9 +58,16 @@ Item {
                     // Not from inside the signal (binding loop): retry a moment later, the other
                     // preview may still be releasing the device
                     onErrorOccurred: (error, errorString) => {
-                        console.warn("obsbot4linuxDux: preview camera:", errorString, "- retry", root.retries + 1);
-                        if (!root.running || root.retries >= 10)
+                        if (!root.running)
                             return;
+                        if (root.retries >= 10) {
+                            if (root.error === "") {
+                                console.warn("obsbot4linuxDux: preview camera:", errorString, "- giving up");
+                                root.error = errorString !== "" ? errorString : "camera error";
+                            }
+                            return;
+                        }
+                        console.warn("obsbot4linuxDux: preview camera:", errorString, "- retry", root.retries + 1);
                         root.retries++;
                         Qt.callLater(() => {
                             root.restarting = true;

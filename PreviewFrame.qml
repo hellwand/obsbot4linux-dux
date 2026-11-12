@@ -33,8 +33,15 @@ ClippingRectangle {
         running: frame.startedAsleep
         onTriggered: frame.startedAsleep = false
     }
-    readonly property bool waking: ctl.previewOn && ctl.available && !videoMissing && (!ctl.awake || (startedAsleep && !frameSeen && !ctl.awakeReported))
-    readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing && !waking
+    // The video component gave up (camera busy) or Qt has no device for the node: say so instead of a black picture
+    readonly property string videoFailure: ctl.previewOn && ctl.available && !videoMissing ? (videoLoader.item?.failure ?? "") : ""
+    readonly property bool videoFailed: videoFailure !== ""
+    // Preview off while the camera is read. A list of only "qs" is the shell's own preview, not
+    // another app; an empty list (an app obsbot4linux cannot name) still counts
+    readonly property var streamingApps: ctl.cam?.streaming_apps ?? []
+    readonly property bool otherAppStreams: !ctl.previewOn && ctl.cam?.streaming === true && !(streamingApps.length > 0 && streamingApps.every(a => a === "qs"))
+    readonly property bool waking: ctl.previewOn && ctl.available && !videoMissing && !videoFailed && (!ctl.awake || (startedAsleep && !frameSeen && !ctl.awakeReported))
+    readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing && !videoFailed && !waking
     readonly property bool overlayShown: !previewShown || (interactive && frameHover.hovered)
     readonly property var hint: previewShown
         ? { icon: "visibility", title: "Preview is on", body: "No other app can use the camera while it's on. Stop it before a call.", button: "Stop preview", buttonIcon: "stop" }
@@ -43,13 +50,19 @@ ClippingRectangle {
             ? { icon: "terminal", title: "Control tool not found", body: "obsbot4linux could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
             : { icon: "usb_off", title: "Camera not connected", body: "The camera doesn't respond on USB. Plug it back in.", button: "Retry", buttonIcon: "refresh" })
         : videoMissing
-            ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: "Stop preview", buttonIcon: "stop" }
+            ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: ctl.previewOn ? "Stop preview" : "", buttonIcon: "stop" }
+        : videoFailed
+            ? (videoFailure === "missing"
+                ? { icon: "videocam_off", title: "Camera not found", body: "The video device of the camera could not be found. Replug the camera, then start the preview again.", button: "Stop preview", buttonIcon: "stop" }
+                : { icon: "videocam_off", title: "Camera is in use by another app", body: "The preview cannot open the camera. Close the other app, then start the preview again.", button: "Stop preview", buttonIcon: "stop" })
         : waking
             ? { icon: "hourglass_empty", title: "Waking camera…", body: "Opening the stream wakes the camera. The picture follows in a moment.", button: "Stop preview", buttonIcon: "stop" }
         : !ctl.awake
             ? { icon: "videocam_off", title: "Camera is asleep", body: "Lens is stowed face-down. The preview wakes it; Wake in the controls only wakes it.", button: "Start preview", buttonIcon: "play_arrow" }
         : !ctl.previewReady
             ? { icon: "hourglass_empty", title: "Waiting for the camera", body: "The preview starts once the camera's video device is known.", button: "", buttonIcon: "" }
+        : otherAppStreams
+            ? { icon: "visibility_off", title: "Preview is off", body: "Another app seems to be using the camera. The preview may stay black until it lets go.", button: "Start preview", buttonIcon: "play_arrow" }
             : { icon: "visibility_off", title: "Preview is off", body: "Turn it on to see the picture while you adjust it. While it's on, no other app can use the camera.", button: "Start preview", buttonIcon: "play_arrow" }
 
     function hintAction() {
@@ -59,7 +72,7 @@ ClippingRectangle {
             ctl.previewOn = false;
         else if (!ctl.available)
             ctl.refresh();
-        else if (videoMissing)
+        else if (videoMissing || videoFailed)
             ctl.previewOn = false;
         else if (ctl.previewReady) {
             startedAsleep = !ctl.awake;
