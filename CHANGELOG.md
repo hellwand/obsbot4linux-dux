@@ -13,17 +13,17 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - `scripts/check-qml.sh` compiles and lints every QML file with the Qt 6 tools, so errors such as a
   property-change handler defined twice show up before a release (#96).
 
-### Fixed
-
-- Desktop widget: the Retry buttons (picture hint and bottom row) work again. Since 0.24.0 they
-  threw an error and did nothing, so the watcher only restarted after its backoff of up to 30 s
-  (#97).
-
 ### Changed
 
 - The repository moved to github.com/hellwand/obsbot4linux-dux; the README and the releases link
   in the startup check point at the new addresses. Existing installs keep working through
   GitHub's redirect; a reinstall picks up the new address (#94).
+
+### Fixed
+
+- Desktop widget: the Retry buttons (picture hint and bottom row) work again. Since 0.24.0 they
+  threw an error and did nothing, so the watcher only restarted after its backoff of up to 30 s
+  (#97).
 
 ## [0.27.0] - 2026-10-31
 
