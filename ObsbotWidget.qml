@@ -829,6 +829,7 @@ PluginComponent {
                             // Without a camera the cards behind the tabs are unusable; arrange mode
                             // keeps them (the buttons are its drop targets)
                             enabled: root.available || root.arranging
+                            opacity: root.available || root.arranging ? 1 : 0.38
                             currentIndex: popout.shownTabs.findIndex(t => t.id === popout.activeTab)
                             onTabClicked: index => root.selectTab(popout.shownTabs[index].id, true)
                         }
