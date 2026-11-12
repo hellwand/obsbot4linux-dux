@@ -13,7 +13,7 @@ currently the **OBSBOT Tiny 2 Lite**. It takes the camera's name and video devic
 from obsbot4linux, and shows only the cards the camera can do (its
 `capabilities`).
 
-The popout is 920 px wide (at most 90 % of the screen width; the left column takes 55 %, so the preview is larger). The left column is always there: Preview and Framing, so you can
+The popout is 920 px wide (at most 90 % of the screen width and at least 720 px; the left column takes 55 %, so the preview is larger). The left column is always there: Preview and Framing, so you can
 watch the picture while changing settings. The right column is a tab bar with three tabs:
 Tracking (Tracking, Zone, Presets), Picture (Picture, Image) and Device (Camera, Sleep, Audio,
 Gestures, Factory reset). The tab area is as high as the tallest tab, so the popout does
@@ -48,7 +48,8 @@ goes to its default tab, ordered by its place in the old column.
   right arrows follow the picture (flipped while mirror is on); a manual
   move switches tracking to Static; "Use current pose as start pose" and "Go to start pose"
   (the pose the camera takes at power-on), with the stored start pose shown when obsbot4linux
-  reports it
+  reports it, and "Start mode" chips for the tracking mode stored with it (Not set, Static, Normal,
+  Upper Body, Headless, Group)
 - presets: the camera's three slots with name and pose; Recall, Save current pose, Rename and
   Delete (two-click confirmation); a note while zone tracking follows new targets, because a
   recall makes the next zone return end in Static
@@ -93,8 +94,8 @@ Control Center tile: the icon wakes or sleeps the camera, the subtitle shows its
 state. A 4 × 4 tile shows the tracking modes and speed; the tile's detail page
 also has the tracked hand.
 
-Settings page: a tracking mode applied whenever the camera wakes up, and switches
-for "Mouse wheel zooms" and "Middle click toggles tracking" (both on by default).
+Settings page: switches for "Mouse wheel zooms" and "Middle click toggles tracking"
+(both on by default).
 Right click is always sleep/wake. Further switches, all applied at once:
 
 | Setting                                                                                                                                                         | Key                                                                                                                                                       | Default |
@@ -143,8 +144,7 @@ corner shows that.
 Camera access goes through [OBSBot4Linux](https://github.com/hellwand/obsbot4linux) (`obsbot4linux`):
 the widget keeps one `obsbot4linux watch` running, gets every state change as an event
 (also changes made from the CLI or by the camera itself) and sends commands on
-its stdin. Desk and Whiteboard tracking are not available with obsbot4linux. The bar pill is hidden while no supported
-camera is plugged in.
+its stdin. Desk and Whiteboard tracking are not available with obsbot4linux.
 
 ## Install
 
@@ -160,7 +160,7 @@ From the DMS plugin browser, or manually:
 
 ```sh
 git clone https://github.com/hellwand/obsbot4linux-dux.git \
-    ~/.config/DankMaterialShell/plugins/obsbot4linuxDux
+    ~/.config/dms/plugins/obsbot4linuxDux
 dms ipc call plugins enable obsbot4linuxDux
 ```
 

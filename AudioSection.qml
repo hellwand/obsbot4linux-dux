@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Microphone processing. Turning the microphone off is left to the CLI: it restarts the camera.
+// Microphone processing. Switching the microphone on or off is left to the CLI: either change restarts the camera.
 SectionCard {
     id: section
 

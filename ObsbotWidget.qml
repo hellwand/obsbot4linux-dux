@@ -44,7 +44,6 @@ PluginComponent {
     ]
     // Manual exposure (UVC auto_exposure 1): exposure_time and gain then set the brightness
     readonly property bool manualExposure: (image.auto_exposure?.value ?? 0) === 1
-    // Settings page: tracking mode applied whenever the camera wakes up ("" = keep)
     // Settings page: the pill's mouse wheel zooms, its middle click toggles tracking
     readonly property bool wheelZoom: pluginData?.wheelZoom ?? true
     readonly property bool middleClickTracking: pluginData?.middleClickTracking ?? true
@@ -521,12 +520,6 @@ PluginComponent {
     function setHandGimbal(on) {
         pluginService?.savePluginData(pluginId, "handGimbal", on);
         root.send(["hand", "gimbal", on ? "on" : "off"], on ? "Letting the hand tracker move the gimbal" : "Stopping the hand tracker's gimbal");
-    }
-
-    // Wake-up zoom in hundredths (the camera stores 0-100 percent: zoom = 1 + 3 * percent / 100)
-    function setWakeZoom(hundredths) {
-        const percent = Math.round((hundredths / 100 - 1) * 100 / 3);
-        root.send(["wake", "zoom", (hundredths / 100).toFixed(2)], "", { status: { wake_up_zoom_percent: percent } }, true);
     }
 
     // Index in trackingModes of the start mode the camera reports, -1 when unknown
