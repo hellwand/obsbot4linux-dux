@@ -3,6 +3,9 @@
 Dux (DankMaterialShell) bar widget and desktop preview for OBSBOT webcams, the desktop
 frontend of [obsbot4linux](https://github.com/hellwand/obsbot4linux). Formerly `dms-obsbot-control`.
 
+Install obsbot4linux first: the commands for each distribution are on the
+[project page](https://hellwand.github.io/obsbot4linux/#install).
+
 ![Popout with the preview off](assets/screenshot.png)
 
 ## Supported cameras
@@ -98,11 +101,11 @@ Settings page: switches for "Mouse wheel zooms" and "Middle click toggles tracki
 (both on by default).
 Right click is always sleep/wake. Further switches, all applied at once:
 
-| Setting                                                                                                                                                         | Key                                                                                                                                                       | Default |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| Hide the bar icon without a camera: follows the running watcher, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed) | `hideWithoutCamera`                                                                                                                                       | off     |
-| Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only                   | `statusTextInBar`                                                                                                                                         | off     |
-| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Zone, Presets, Picture, Image, Audio, Gestures, Factory reset                                                   | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardZone`, `cardPresets`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on      |
+| Setting                                                                                                                                                         | Key                                                                                                                                                                      | Default |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| Hide the bar icon without a camera: follows the running watcher, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed) | `hideWithoutCamera`                                                                                                                                                      | off     |
+| Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only                   | `statusTextInBar`                                                                                                                                                        | off     |
+| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Zone, Presets, Picture, Image, Audio, Gestures, Factory reset                                          | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardZone`, `cardPresets`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on      |
 
 The card switches affect the popout only (not the bar icon actions or the Control
 Center tile). A card the connected camera does not support stays hidden whatever its

@@ -13,6 +13,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Layout: the 2 px gaps and borders use the shell's Theme tokens (`spacingXXS`, `outlineWidthFocused`)
   instead of fixed numbers, with the same size at the default Theme. The popout widths are now
   named properties; they and the desktop picture bounds have no matching Theme token (#123).
+- README: a line near the top points to the obsbot4linux project page,
+  https://hellwand.github.io/obsbot4linux/, for the tool's install commands (#126).
 
 ### Fixed
 
