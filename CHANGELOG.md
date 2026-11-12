@@ -13,7 +13,7 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - README: the install command clones into `~/.config/dms/plugins`; the removed "tracking mode when the
   camera wakes" setting and the "pill is hidden without a camera" sentence are gone (the pill stays,
   dimmed, by default); the popout width states its 720 px minimum; the Framing card's Start mode
-  chips are listed. Dead code and two stale comments removed (#102).
+  chips are listed. Dead code and a stale comment removed; the Audio card's comment corrected (#102).
 
 ## [0.27.1] - 2026-11-12
 
