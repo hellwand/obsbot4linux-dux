@@ -27,6 +27,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   so "Follow new targets" fails) and refuses obsbot4linux 1.0 and newer, which need widget 1.0 or
   newer. `plugin.json` requires DMS 2.0.0 or newer, the first version with the modules this widget
   imports. This corrects the minimums stated in 0.19.1 (obsbot4linux 0.7.1) and 0.15.0 (DMS 1.5.0) (#105).
+- Presets card and desktop bottom row: without a camera they no longer say "Reading presets…", and
+  with obsbot4linux 0.13 an unanswered list shows "Could not read the presets". "Save current
+  pose" is enabled only while the camera is live (#106).
 
 ## [0.27.1] - 2026-11-12
 

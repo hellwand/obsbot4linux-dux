@@ -169,7 +169,7 @@ Item {
                 width: parent.width
                 elide: Text.ElideRight
                 visible: !presetsItem.anySaved
-                text: bottom.ctl.presets === null ? (bottom.ctl.presetsFailed ? "Could not read the presets" : "Reading presets…") : "No presets saved"
+                text: bottom.ctl.presets === null ? (!bottom.ctl.available ? "" : bottom.ctl.presetsFailed || bottom.ctl.has("preset_state") ? "Could not read the presets" : "Reading presets…") : "No presets saved"
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }

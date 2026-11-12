@@ -26,6 +26,13 @@ SectionCard {
     function poseText(p) {
         return "pan " + num(p.pose.pan) + "° · tilt " + num(p.pose.tilt) + "° · zoom " + Number(p.pose.zoom).toFixed(2) + "×";
     }
+    // No list: nothing to say without a camera; with preset_state the list is part of every state,
+    // so null there means the camera did not answer
+    function missingText() {
+        if (!ctl.available)
+            return "";
+        return ctl.presetsFailed || ctl.has("preset_state") ? "Could not read the presets" : "Reading presets...";
+    }
     function reset() {
         renaming = -1;
         deleting = -1;
@@ -86,7 +93,7 @@ SectionCard {
                 width: parent.width
                 wrapMode: Text.WordWrap
                 visible: !row.confirmingDelete
-                text: row.preset ? section.poseText(row.preset) : (section.ctl.presets === null ? (section.ctl.presetsFailed ? "Could not read the presets" : "Reading presets...") : "Empty")
+                text: row.preset ? section.poseText(row.preset) : (section.ctl.presets === null ? section.missingText() : "Empty")
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
                 font.features: { "tnum": 1 }
@@ -129,6 +136,7 @@ SectionCard {
                     visible: !row.confirmingDelete && !row.editing
                     text: "Save current pose"
                     iconName: "save"
+                    enabled: section.ctl.live
                     onClicked: section.ctl.presetCommand(["preset", "save", row.modelData], "Saving preset " + (row.modelData + 1))
                 }
 
