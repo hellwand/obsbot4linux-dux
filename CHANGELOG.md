@@ -8,6 +8,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-11-12
+
 ### Changed
 
 - README: the install command clones into `~/.config/dms/plugins`; the removed "tracking mode when the
