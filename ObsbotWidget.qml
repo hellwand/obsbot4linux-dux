@@ -136,16 +136,17 @@ PluginComponent {
     readonly property bool live: available && awake
     // Off when the camera goes away (unplugged, watch lost) or falls asleep while the preview was
     // running, here or from another surface, like the desktop widget. A preview started while the
-    // camera sleeps stays on: opening the stream wakes the camera (#93).
+    // camera sleeps stays on: opening the stream wakes the camera (#93). Only the camera's own
+    // report counts as awake here, not the optimistic value shown meanwhile (#98).
     property bool previewWasAwake: false
-    onPreviewOnChanged: previewWasAwake = previewOn && awake
+    onPreviewOnChanged: previewWasAwake = previewOn && awakeReported
+    onAwakeReportedChanged: {
+        if (awakeReported && previewOn)
+            previewWasAwake = true;
+    }
     onAwakeChanged: {
-        if (awake) {
-            if (previewOn)
-                previewWasAwake = true;
-        } else if (previewWasAwake) {
+        if (!awake && previewWasAwake)
             previewOn = false;
-        }
     }
     onAvailableChanged: {
         if (!available)

@@ -24,6 +24,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Desktop widget: the Retry buttons (picture hint and bottom row) work again. Since 0.24.0 they
   threw an error and did nothing, so the watcher only restarted after its backoff of up to 30 s
   (#97).
+- A preview started while the camera sleeps no longer switches itself off after 3 s (or when an
+  asleep event arrives during that time). The stop rule "camera fell asleep while the preview ran"
+  now counts only the camera's own awake report, not the optimistic value (#98).
 
 ## [0.27.0] - 2026-10-31
 

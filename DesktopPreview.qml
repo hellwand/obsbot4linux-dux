@@ -56,17 +56,18 @@ DesktopPluginComponent {
 
     // Stop rules: whenever the camera goes away (unplugged, lost) or falls asleep while the preview
     // was running (a preview started while it sleeps stays on: opening the stream wakes it, #93),
-    // and while editing. DMS also unloads the widget when it is disabled or removed, which
-    // closes the camera. Otherwise the preview keeps running until the user stops it.
+    // and while editing. Only the camera's own report counts as awake here, not the optimistic
+    // value shown meanwhile (#98). DMS also unloads the widget when it is disabled or removed,
+    // which closes the camera. Otherwise the preview keeps running until the user stops it.
     property bool previewWasAwake: false
-    onPreviewOnChanged: previewWasAwake = previewOn && awake
+    onPreviewOnChanged: previewWasAwake = previewOn && awakeReported
+    onAwakeReportedChanged: {
+        if (awakeReported && previewOn)
+            previewWasAwake = true;
+    }
     onAwakeChanged: {
-        if (awake) {
-            if (previewOn)
-                previewWasAwake = true;
-        } else if (previewWasAwake) {
+        if (!awake && previewWasAwake)
             previewOn = false;
-        }
     }
     onAvailableChanged: {
         if (!available)
