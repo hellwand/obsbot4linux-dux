@@ -23,6 +23,10 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   chip is selected. The stored start pose no longer reads "pan NaN°" while only the mode is known.
   The popout header's status line stays on one line and is elided instead of running under the
   buttons. The hand axis switches stay hidden when the camera's answer has no axis data (#104).
+- The startup check now needs obsbot4linux 0.7.3 or newer (0.7.1 and 0.7.2 end zone tracking in Static,
+  so "Follow new targets" fails) and refuses obsbot4linux 1.0 and newer, which need widget 1.0 or
+  newer. `plugin.json` requires DMS 2.0.0 or newer, the first version with the modules this widget
+  imports. This corrects the minimums stated in 0.19.1 (obsbot4linux 0.7.1) and 0.15.0 (DMS 1.5.0) (#105).
 
 ## [0.27.1] - 2026-11-12
 
