@@ -13,7 +13,8 @@
 #      nothing else is searched
 #   2. the directories reported by qtpaths6 in PATH (QT_INSTALL_LIBEXECS and QT_INSTALL_BINS)
 #   3. /usr/lib/qt6 and /usr/lib64/qt6
-# The script fails when a tool is not found. It never skips a check.
+# Tools that are not Qt 6 are skipped. The script fails when no Qt 6 tool is found. It never skips
+# a check.
 
 set -eu
 
@@ -40,11 +41,13 @@ candidate_dirs() {
 	done
 }
 
-# Print the path of the Qt 6 tool $1, or return 1.
+# Print the path of the Qt 6 tool $1, or return 1. A candidate that is not Qt 6 (a Qt 5 tool
+# accepts other options and judges QML by other rules) is skipped, the next one is tried.
 find_tool() {
 	local dir
 	while IFS= read -r dir; do
-		if [ -n "$dir" ] && [ -x "$dir/$1" ] && [ -f "$dir/$1" ]; then
+		if [ -n "$dir" ] && [ -x "$dir/$1" ] && [ -f "$dir/$1" ] &&
+			"$dir/$1" --version 2>&1 | grep -q -E ' 6\.[0-9]+'; then
 			printf '%s\n' "$dir/$1"
 			return 0
 		fi
@@ -56,12 +59,6 @@ qmlcachegen=$(find_tool qmlcachegen) ||
 	die "qmlcachegen (Qt 6) not found. Install the Qt 6 declarative tools, or set OBSBOT_QT6_DIR to the Qt 6 install directory."
 qmllint=$(find_tool qmllint) ||
 	die "qmllint (Qt 6) not found. Install the Qt 6 declarative tools, or set OBSBOT_QT6_DIR to the Qt 6 install directory."
-
-# A Qt 5 tool in PATH would accept other options and judge QML by other rules.
-for tool in "$qmlcachegen" "$qmllint"; do
-	"$tool" --version 2>&1 | grep -q -E ' 6\.[0-9]+' ||
-		die "$tool is not a Qt 6 tool"
-done
 
 shopt -s nullglob
 files=("$repo"/*.qml)
