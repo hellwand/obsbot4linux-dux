@@ -8,6 +8,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-11-12
+
 ### Changed
 
 - Layout: the 2 px gaps and borders use the shell's Theme tokens (`spacingXXS`, `outlineWidthFocused`)
