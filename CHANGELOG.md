@@ -25,6 +25,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Work lands on `develop`; `main`, which `dms plugins update` installs, only moves to released
   versions: GitHub accepts a push to `main` only for a commit the release workflow marked
   `released`. Renovate opens its pull requests against `develop` (#143).
+- `plugin.json` states the upper bound the startup check enforces since 0.28.0: obsbot4linux 0.7.3
+  or newer, before 1.0. obsbot4linux 1.0 needs widget 1.0 (#145).
 
 ## [0.29.1] - 2026-11-12
 
