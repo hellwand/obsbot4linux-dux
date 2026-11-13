@@ -11,17 +11,20 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 ### Added
 
 - A GitHub Actions workflow runs `scripts/check-qml.sh` and shellcheck on every pull request into
-  `main` (#132).
+  `develop` (#132, #143).
 - A tag `vX.Y.Z` now creates the GitHub release by workflow. It first checks that the tag equals
-  the `plugin.json` version, that the commit is on `main` and was green as a pull request, and that
+  the `plugin.json` version, that the commit is on `develop` or a `release/*` branch and was green as a pull request, and that
   `CHANGELOG.md` has a section for the version; the release notes are that section (#138). A dry run says when the
   tag or release already exists. CI checks that the `plugin.json` version has a CHANGELOG section
   (#140).
 
 ### Changed
 
-- README: the contributing note says that CI runs the QML check and that a change lands on `main`
-  only after its `required` check is green (#136).
+- README: the contributing note says that CI runs the QML check and that a change lands on `develop`
+  only after its `required` check is green (#136, #143).
+- Work lands on `develop`; `main`, which `dms plugins update` installs, only moves to released
+  versions: GitHub accepts a push to `main` only for a commit the release workflow marked
+  `released`. Renovate opens its pull requests against `develop` (#143).
 
 ## [0.29.1] - 2026-11-12
 

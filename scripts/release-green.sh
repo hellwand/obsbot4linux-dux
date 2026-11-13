@@ -3,8 +3,8 @@
 #
 # Release guard: the commit to release must already be green as a pull request. Fails, with the
 # reason, unless SHA has a check run "required" from a pull_request run of .github/workflows/ci.yml
-# and the newest such check run completed with success. Main moves only by a fast-forward push of a
-# green pull request head, so the tagged commit is that head and carries the check.
+# and the newest such check run completed with success. develop and release/* move only by a
+# fast-forward push of a green pull request head, so a release commit is that head and carries the check.
 # A "required" job of another workflow or event (an old push run) does not count.
 #
 # Usage: release-green.sh SHA     env: GITHUB_REPOSITORY, GH_TOKEN (checks: read, actions: read)

@@ -1,11 +1,13 @@
 name: CI
 
-# Pull requests into main only: this workflow produces the `required` check that the main
-# ruleset requires, so it must not run on push or by dispatch (that would mark a commit green
-# that was never a pull request head). No paths filter, so the check always reports.
+# Pull requests into develop and into release branches only: this workflow produces the
+# `required` check that the rulesets of develop, release/* and main require, so it must not run
+# on push or by dispatch (that would mark a commit green that was never a pull request head). No
+# paths filter, so the check always reports. Pull requests into main get no check: main only
+# moves to released commits (README, "Releasing").
 on:
   pull_request:
-    branches: [main]
+    branches: [develop, "release/**"]
 
 permissions:
   contents: read
@@ -46,7 +48,7 @@ jobs:
           persist-credentials: false
       - run: scripts/release-notes.sh HEAD "v$(jq -r .version plugin.json)" >/dev/null
 
-  # The one check the main ruleset requires. It passes only when every gate succeeded.
+  # The check the branch rulesets require. It passes only when every gate succeeded.
   required:
     name: required
     needs: [qml, shellcheck, changelog]

@@ -170,7 +170,7 @@ dms ipc call plugins enable obsbot4linuxDux
 Then add the `obsbot4linuxDux` widget to a bar in DMS settings.
 After changing QML, run `dms restart` (`plugins reload` keeps cached components).
 Before sending a change, run `scripts/check-qml.sh` (needs the Qt 6 tools; it compiles and lints every QML file).
-CI runs it and shellcheck on every pull request into `main`; a change lands on `main` only after the pull request's `required` check is green.
+CI runs it and shellcheck on every pull request into `develop` (or a `release/*` branch); a change lands there only after the pull request's `required` check is green.
 
 ## Update
 
@@ -179,6 +179,8 @@ dms plugins update obsbot4linuxDux
 dms restart
 ```
 
+`main` is what this installs; it only ever points at a released version. Work happens on `develop`.
+
 ## Development
 
 The code was written with Claude Code (AI) and reviewed and tested on a
@@ -186,15 +188,23 @@ Tiny 2 Lite.
 
 ## Releasing
 
-1. Land a commit "Release X.Y.Z" through a pull request: it sets `version` in `plugin.json` and
-   turns the `## [Unreleased]` entries of `CHANGELOG.md` into a `## [X.Y.Z] - date` section.
-2. Dry run: run the Release workflow by hand with that commit and the version; it runs the checks
-   and prints the release it would create, and creates nothing. Do this before the tag: tags `v*`
-   cannot be moved or deleted in this repository, so a tag on a bad release commit burns the version.
-3. Push the signed tag `vX.Y.Z` on that commit. The Release workflow creates the GitHub release,
-   with that CHANGELOG section as notes, after it has checked that the tag equals the `plugin.json`
-   version, that the commit is on `main` and was green as a pull request, and that the section
-   exists. If a check fails, no release is created.
+1. Land a commit "Release X.Y.Z" on `develop` through a pull request: it sets `version` in
+   `plugin.json` and turns the `## [Unreleased]` entries of `CHANGELOG.md` into a
+   `## [X.Y.Z] - date` section.
+2. Dry run: `gh workflow run release.yml --ref develop -f version=X.Y.Z`. It runs the checks,
+   prints the release it would create and whether `main` can follow, and creates nothing. Do this
+   before the tag: tags `v*` cannot be moved or deleted in this repository, so a tag on a bad
+   release commit burns the version.
+3. Push the signed tag `vX.Y.Z` on that commit. The Release workflow checks that the tag equals the
+   `plugin.json` version, that the commit is on `develop` or a `release/*` branch and was green as
+   a pull request, and that the section exists; then it creates the GitHub release, with that
+   CHANGELOG section as notes, and marks the commit `released`. If a check fails, nothing is
+   created.
+4. Move `main`: `git push origin <commit>:main`. GitHub accepts it only for a fast-forward to a
+   released commit.
+5. A fix for an older line: branch `release/X.Y` from that line's newest tag, land the fix and
+   "Release X.Y.Z" there through pull requests, then steps 2-4 with `--ref release/X.Y`. `main`
+   follows only if it is still on that line (step 2 says which).
 
 ## License
 
