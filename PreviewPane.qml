@@ -11,7 +11,7 @@ SectionCard {
     property real maxHeight: -1
 
     title: "Preview"
-    width:
+    property int broken: )
 
     PreviewFrame {
         width: parent.width
