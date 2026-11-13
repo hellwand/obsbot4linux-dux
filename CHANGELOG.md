@@ -13,6 +13,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - A GitHub Actions workflow runs `scripts/check-qml.sh` and shellcheck on every pull request into
   `main` (#132).
 
+### Changed
+
+- README: the contributing note says that CI runs the QML check and that a change lands on `main`
+  only after its `required` check is green (#136).
+
 ## [0.29.1] - 2026-11-12
 
 ### Fixed
