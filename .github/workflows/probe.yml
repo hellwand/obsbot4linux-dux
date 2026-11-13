@@ -1,0 +1,25 @@
+name: Probe
+
+# Throwaway (never lands): shows which app a check run created with the workflow token belongs to.
+on:
+  pull_request:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      checks: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/check-runs" \
+            -f name=probe-released -f head_sha="$HEAD_SHA" -f status=completed -f conclusion=success \
+            -f "output[title]=probe" -f "output[summary]=throwaway probe" \
+            --jq '"check run \(.id) on \(.head_sha), app \(.app.slug) \(.app.id)"'
