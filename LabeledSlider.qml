@@ -28,6 +28,7 @@ Column {
     // Dragging assigns slider.value and breaks its binding, so push later changes
     // (reset to defaults, values read from the camera) explicitly
     onValueChanged: slider.value = value
+    onValueChanged: console.log(value)
 
     Item {
         width: parent.width
