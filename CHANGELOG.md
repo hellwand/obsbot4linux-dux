@@ -12,6 +12,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 - A GitHub Actions workflow runs `scripts/check-qml.sh` and shellcheck on every pull request into
   `main` (#132).
+- A tag `vX.Y.Z` now creates the GitHub release by workflow. It first checks that the tag equals
+  the `plugin.json` version, that the commit is on `main` and was green as a pull request, and that
+  `CHANGELOG.md` has a section for the version; the release notes are that section (#138).
 
 ### Changed
 

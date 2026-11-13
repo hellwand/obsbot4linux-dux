@@ -184,6 +184,17 @@ dms restart
 The code was written with Claude Code (AI) and reviewed and tested on a
 Tiny 2 Lite.
 
+## Releasing
+
+1. Land a commit "Release X.Y.Z" through a pull request: it sets `version` in `plugin.json` and
+   turns the `## [Unreleased]` entries of `CHANGELOG.md` into a `## [X.Y.Z] - date` section.
+2. Push the signed tag `vX.Y.Z` on that commit. The Release workflow creates the GitHub release,
+   with that CHANGELOG section as notes, after it has checked that the tag equals the `plugin.json`
+   version, that the commit is on `main` and was green as a pull request, and that the section
+   exists. If a check fails, no release is created.
+3. Dry run: run the Release workflow by hand with a commit and a version; it runs the checks and
+   prints the release it would create.
+
 ## License
 
 GPL-3.0-or-later, see [LICENSE](LICENSE).

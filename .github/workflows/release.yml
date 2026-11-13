@@ -1,0 +1,80 @@
+name: Release
+
+# Pushing a tag vX.Y.Z creates the GitHub release. Before it does, verify checks that the tag
+# equals the version in plugin.json, that the tagged commit is on main, that it was green as a
+# pull request (scripts/release-green.sh) and that CHANGELOG.md has a section for the version.
+# If a check fails, no release is created. The release notes are that CHANGELOG section.
+# workflow_dispatch is a dry run of the same checks on `sha` (default: the head of the ref) and
+# `version`: it prints the release and creates nothing.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Dry run: the commit to check (default: the head of the ref). Creates nothing."
+        required: false
+        type: string
+      version:
+        description: "Dry run: the version to check, X.Y.Z without v."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read # the run behind the required check
+      checks: read # the required check run
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The scripts run from this checkout and are given the commit and the tag to check: a dry
+      # run's commit can be older than the scripts.
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ inputs.sha || github.sha }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
+        run: |
+          sha=$(git rev-parse --verify --quiet "$SHA^{commit}") || {
+            echo "release refused: $SHA is not a commit" >&2
+            exit 1
+          }
+          git merge-base --is-ancestor "$sha" origin/main || {
+            echo "release refused: $sha is not on main" >&2
+            exit 1
+          }
+          scripts/release-green.sh "$sha"
+          scripts/release-notes.sh "$sha" "$TAG" > notes.md
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            echo "Dry run: would create release $TAG on $sha with these notes, nothing created:"
+          else
+            echo "Checks passed: release $TAG on $sha with these notes:"
+          fi
+          cat notes.md
+
+  # Tags only, and only after verify passed. The one job with write access.
+  release:
+    if: github.event_name == 'push'
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/release-notes.sh "$GITHUB_SHA" "$GITHUB_REF_NAME" > notes.md
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" \
+            --notes-file notes.md
