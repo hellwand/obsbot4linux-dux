@@ -8,6 +8,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Added
+
+- A GitHub Actions workflow runs `scripts/check-qml.sh` and shellcheck on every pull request into
+  `main` (#132).
+
 ## [0.29.1] - 2026-11-12
 
 ### Fixed

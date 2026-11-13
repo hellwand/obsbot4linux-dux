@@ -1,0 +1,53 @@
+name: CI
+
+# Pull requests into main only: this workflow produces the `required` check that the main
+# ruleset requires, so it must not run on push or by dispatch (that would mark a commit green
+# that was never a pull request head). No paths filter, so the check always reports.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # Ubuntu's own Qt 6.4 qmllint does not accept the script's options. Arch ships the Qt that the
+  # desktop shell runs. The digest pins the image; -Syu installs the current Arch Qt, so a new Qt
+  # with a new lint can turn a pull request red: fix that in its own PR, never by loosening the script.
+  qml:
+    runs-on: ubuntu-24.04
+    container: archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899
+    timeout-minutes: 15
+    steps:
+      - run: pacman -Syu --noconfirm --needed qt6-declarative
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: bash scripts/check-qml.sh
+
+  shellcheck:
+    runs-on: ubuntu-24.04
+    container: archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899
+    timeout-minutes: 15
+    steps:
+      - run: pacman -Syu --noconfirm --needed shellcheck
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: shellcheck scripts/*.sh
+
+  # The one check the main ruleset requires. It passes only when every gate succeeded.
+  required:
+    name: required
+    needs: [qml, shellcheck]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      QML: ${{ needs.qml.result }}
+      SHELLCHECK: ${{ needs.shellcheck.result }}
+    steps:
+      - run: |
+          echo "qml=$QML shellcheck=$SHELLCHECK"
+          test "$QML" = success
+          test "$SHELLCHECK" = success
