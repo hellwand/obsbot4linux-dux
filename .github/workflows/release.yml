@@ -54,7 +54,12 @@ jobs:
           scripts/release-green.sh "$sha"
           scripts/release-notes.sh "$sha" "$TAG" > notes.md
           if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
-            echo "Dry run: would create release $TAG on $sha with these notes, nothing created:"
+            if git rev-parse --verify --quiet "refs/tags/$TAG" >/dev/null ||
+              gh release view "$TAG" >/dev/null 2>&1; then
+              echo "Dry run: the tag or a release $TAG already exists; a tag push would not create anything new. The checks passed for $sha; nothing created. Notes it would have:"
+            else
+              echo "Dry run: would create release $TAG on $sha with these notes, nothing created:"
+            fi
           else
             echo "Checks passed: release $TAG on $sha with these notes:"
           fi

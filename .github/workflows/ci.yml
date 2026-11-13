@@ -36,18 +36,30 @@ jobs:
           persist-credentials: false
       - run: shellcheck scripts/*.sh
 
+  # The version in plugin.json must have a non-empty CHANGELOG.md section (what the release needs).
+  changelog:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/release-notes.sh HEAD "v$(jq -r .version plugin.json)" >/dev/null
+
   # The one check the main ruleset requires. It passes only when every gate succeeded.
   required:
     name: required
-    needs: [qml, shellcheck]
+    needs: [qml, shellcheck, changelog]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:
       QML: ${{ needs.qml.result }}
       SHELLCHECK: ${{ needs.shellcheck.result }}
+      CHANGELOG: ${{ needs.changelog.result }}
     steps:
       - run: |
-          echo "qml=$QML shellcheck=$SHELLCHECK"
+          echo "qml=$QML shellcheck=$SHELLCHECK changelog=$CHANGELOG"
           test "$QML" = success
           test "$SHELLCHECK" = success
+          test "$CHANGELOG" = success

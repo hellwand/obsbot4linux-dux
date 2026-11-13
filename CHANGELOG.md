@@ -14,7 +14,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   `main` (#132).
 - A tag `vX.Y.Z` now creates the GitHub release by workflow. It first checks that the tag equals
   the `plugin.json` version, that the commit is on `main` and was green as a pull request, and that
-  `CHANGELOG.md` has a section for the version; the release notes are that section (#138).
+  `CHANGELOG.md` has a section for the version; the release notes are that section (#138). A dry run says when the
+  tag or release already exists. CI checks that the `plugin.json` version has a CHANGELOG section
+  (#140).
 
 ### Changed
 
