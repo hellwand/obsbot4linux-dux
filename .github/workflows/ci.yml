@@ -17,7 +17,7 @@ jobs:
   # desktop shell runs. The digest pins the image; -Syu installs the current Arch Qt, so a new Qt
   # with a new lint can turn a pull request red: fix that in its own PR, never by loosening the script.
   qml:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container: archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899
     timeout-minutes: 15
     steps:
@@ -28,7 +28,7 @@ jobs:
       - run: bash scripts/check-qml.sh
 
   shellcheck:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container: archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899
     timeout-minutes: 15
     steps:
@@ -40,7 +40,7 @@ jobs:
 
   # The version in plugin.json must have a non-empty CHANGELOG.md section (what the release needs).
   changelog:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,7 +53,7 @@ jobs:
     name: required
     needs: [qml, shellcheck, changelog]
     if: always()
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     env:
       QML: ${{ needs.qml.result }}
