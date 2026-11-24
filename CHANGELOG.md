@@ -18,6 +18,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   offers and with which values and bounds, what a control shows (its own value until the reply,
   then the camera's value or its pending one), the device list and the device shown, presets and
   views, and the gimbal arrows (#157).
+- One link object ties the widget's modules together: every control sends exactly one request and
+  nothing before or after it (#160).
 
 ## [0.29.2] - 2026-11-13
 
