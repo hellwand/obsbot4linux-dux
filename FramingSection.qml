@@ -1,27 +1,37 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "lib/format.mjs" as Format
+import "lib/gimbal.mjs" as Gimbal
 
 // Pan/tilt and zoom
 SectionCard {
     id: section
 
     property var ctl
-    readonly property var startPose: ctl.cam.state?.startup ?? null
-    // `startup set --ai` values (obsbot4linux 0.11.1); the camera reports the stored one as
-    // state.startup.ai_mode, null while none is set
-    readonly property var startModes: [
-        { label: "Not set", arg: "none", key: "" },
-        { label: "Static", arg: "static", key: "static" },
-        { label: "Normal", arg: "normal", key: "normal" },
-        { label: "Upper Body", arg: "upper-body", key: "upper_body" },
-        { label: "Headless", arg: "headless", key: "headless" },
-        { label: "Group", arg: "group", key: "group" }
-    ]
-    // -1 (no chip selected) for a start mode this widget cannot set, such as hand
-    readonly property int startModeIndex: {
-        const key = String(startPose?.ai_mode ?? "").replace("-", "_");
-        return startModes.findIndex(m => m.key === key);
+
+    readonly property var moveSpec: Gimbal.moveSpec(ctl.link.device)
+    // The target of the last own move and when it went out ({pan, tilt, at}); the base of the
+    // next step for STEP_BASE_MS (decision 12)
+    property var lastMove: null
+    // The arrows need a pose to step from; while it is not read they are disabled
+    readonly property bool poseKnown: typeof ctl.link.value("gimbal.pan") === "number" && typeof ctl.link.value("gimbal.tilt") === "number"
+    // The centre button needs 0 inside both bounds of gimbal.move
+    readonly property bool centerOk: moveSpec !== null && (moveSpec.pan.min === null || moveSpec.pan.min <= 0) && (moveSpec.pan.max === null || moveSpec.pan.max >= 0) && (moveSpec.tilt.min === null || moveSpec.tilt.min <= 0) && (moveSpec.tilt.max === null || moveSpec.tilt.max >= 0)
+
+    // One arrow press: one gimbal.move to the computed target, nothing else (spec 2, 12.3)
+    function step(dPan, dTilt) {
+        if (moveSpec === null || ctl.link.blocked("gimbal.move") !== null)
+            return;
+        const pose = { pan: ctl.link.value("gimbal.pan"), tilt: ctl.link.value("gimbal.tilt") };
+        const sign = Gimbal.panLeftSign(ctl.link.camState);
+        const target = Gimbal.stepTarget(moveSpec, pose, lastMove, Date.now(), dPan * sign, dTilt);
+        // no pose to step from: nothing is sent (the widget never makes a target up)
+        if (target === null)
+            return;
+        lastMove = { pan: target.pan, tilt: target.tilt, at: Date.now() };
+        const request = Gimbal.moveRequest(target);
+        ctl.link.act(request.action, request.params);
     }
 
     title: "Framing"
@@ -37,6 +47,7 @@ SectionCard {
         // D-pad: up / left center right / down
         Grid {
             id: dpad
+            visible: section.moveSpec !== null
             columns: 3
             spacing: Theme.spacingXS
 
@@ -45,46 +56,39 @@ SectionCard {
                 id: upButton
                 variant: "tonal"
                 iconName: "keyboard_arrow_up"
+                enabled: section.poseKnown && section.ctl.link.blocked("gimbal.move") === null
                 tooltipText: "Tilt up " + section.ctl.gimbalStep + "°"
-                onClicked: {
-                    const b = section.ctl.stepBase();
-                    section.ctl.moveGimbal(b.pan, b.tilt + section.ctl.gimbalStep);
-                }
+                onClicked: section.step(0, section.ctl.gimbalStep)
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_left"
+                enabled: section.poseKnown && section.ctl.link.blocked("gimbal.move") === null
                 tooltipText: "Pan left " + section.ctl.gimbalStep + "°"
-                onClicked: {
-                    const b = section.ctl.stepBase();
-                    section.ctl.moveGimbal(b.pan + section.ctl.panLeftSign * section.ctl.gimbalStep, b.tilt);
-                }
+                onClicked: section.step(section.ctl.gimbalStep, 0)
             }
             DIconButton {
                 variant: "outlined"
                 iconName: "filter_center_focus"
+                enabled: section.centerOk && section.ctl.link.blocked("gimbal.move") === null
                 tooltipText: "Center"
-                onClicked: section.ctl.moveGimbal(0, 0)
+                onClicked: section.ctl.link.act("gimbal.move", { pan: 0, tilt: 0 })
             }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_right"
+                enabled: section.poseKnown && section.ctl.link.blocked("gimbal.move") === null
                 tooltipText: "Pan right " + section.ctl.gimbalStep + "°"
-                onClicked: {
-                    const b = section.ctl.stepBase();
-                    section.ctl.moveGimbal(b.pan - section.ctl.panLeftSign * section.ctl.gimbalStep, b.tilt);
-                }
+                onClicked: section.step(-section.ctl.gimbalStep, 0)
             }
             Item { width: upButton.width; height: upButton.height }
             DIconButton {
                 variant: "tonal"
                 iconName: "keyboard_arrow_down"
+                enabled: section.poseKnown && section.ctl.link.blocked("gimbal.move") === null
                 tooltipText: "Tilt down " + section.ctl.gimbalStep + "°"
-                onClicked: {
-                    const b = section.ctl.stepBase();
-                    section.ctl.moveGimbal(b.pan, b.tilt - section.ctl.gimbalStep);
-                }
+                onClicked: section.step(0, -section.ctl.gimbalStep)
             }
             Item { width: upButton.width; height: upButton.height }
         }
@@ -93,11 +97,12 @@ SectionCard {
             // beside the pad while at least sideMin wide, else full width under it
             readonly property real sideMin: Theme.spacingXL * 6
             readonly property real beside: moveZoom.width - dpad.width - moveZoom.spacing
-            width: beside >= sideMin ? beside : moveZoom.width
+            width: dpad.visible && beside >= sideMin ? beside : moveZoom.width
             spacing: Theme.spacingS
 
             StyledText {
-                text: "Pan " + section.ctl.degrees(section.ctl.pan) + " · Tilt " + section.ctl.degrees(section.ctl.tilt)
+                visible: section.ctl.link.has("gimbal.pan")
+                text: "Pan " + Format.value(section.ctl.link.setting("gimbal.pan"), section.ctl.link.value("gimbal.pan")) + " · Tilt " + Format.value(section.ctl.link.setting("gimbal.tilt"), section.ctl.link.value("gimbal.tilt"))
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
                 font.features: { "tnum": 1 }
@@ -106,31 +111,20 @@ SectionCard {
             ChipRow {
                 id: stepRow
                 width: parent.width
+                visible: dpad.visible
                 label: "Step"
                 options: ["5°", "1°"]
                 currentIndex: section.ctl.fineGimbal ? 1 : 0
                 onSelected: index => section.ctl.fineGimbal = index === 1
             }
 
-            LabeledSlider {
+            SettingSlider {
                 width: parent.width
-                label: "Zoom"
-                // hundredths, so the field of view levels (1.15×, 1.47×) show exactly
-                minimum: Math.round(section.ctl.zoomRange[0] * 100)
-                maximum: Math.round(section.ctl.zoomRange[1] * 100)
-                value: Math.round(section.ctl.zoomFactor * 100)
-                formatValue: v => (v / 100).toFixed(2) + "×"
-                onMoved: value => section.ctl.setZoom(value / 100)
+                link: section.ctl.link
+                path: "zoom.factor"
+                text: "Zoom"
             }
         }
-    }
-
-    StyledText {
-        width: parent.width
-        wrapMode: Text.WordWrap
-        text: "Moving switches tracking to Static."
-        color: Theme.surfaceVariantText
-        font.pixelSize: Theme.fontSizeSmall
     }
 
     Connections {
@@ -144,7 +138,7 @@ SectionCard {
     Item {
         width: parent.width
         height: startRow.height
-        visible: section.ctl.has("startup")
+        visible: section.ctl.link.has("power_on.start.pose") || section.ctl.link.has("power_on.use_current") || section.ctl.link.has("power_on.go")
 
         Column {
             anchors.left: parent.left
@@ -160,9 +154,9 @@ SectionCard {
 
             StyledText {
                 width: parent.width
-                visible: section.startPose?.pan != null
+                visible: section.ctl.link.has("power_on.start.pose")
                 wrapMode: Text.WordWrap
-                text: section.startPose?.pan != null ? "pan " + section.ctl.degrees(section.startPose.pan) + " · tilt " + section.ctl.degrees(section.startPose.tilt) + " · zoom " + Number(section.startPose.zoom).toFixed(2) + "×" : ""
+                text: Format.value(section.ctl.link.setting("power_on.start.pose"), section.ctl.link.value("power_on.start.pose"))
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
             }
@@ -176,27 +170,30 @@ SectionCard {
             DButton {
                 text: "Use current"
                 iconName: "flag"
-                onClicked: section.ctl.send(["startup", "set", "--current"], "Setting the start pose")
+                visible: section.ctl.link.has("power_on.use_current")
+                enabled: section.ctl.link.blocked("power_on.use_current") === null
+                onClicked: section.ctl.link.act("power_on.use_current", {})
             }
 
             DButton {
                 text: "Go"
                 iconName: "start"
-                onClicked: section.ctl.send(["startup", "go"], "Moving to the start pose")
+                visible: section.ctl.link.has("power_on.go")
+                enabled: section.ctl.link.blocked("power_on.go") === null
+                onClicked: section.ctl.link.act("power_on.go", {})
             }
         }
     }
 
     // A setting stored in the camera; written only when picked here
-    ChipRow {
+    SettingChips {
         id: startModeRow
         width: parent.width
         stacked: true
-        visible: section.ctl.has("startup") && section.ctl.has("startup_ai")
-        label: "Start mode"
-        options: section.startModes.map(m => m.label)
-        currentIndex: section.startModeIndex
-        onSelected: index => section.ctl.send(["startup", "set", "--ai", section.startModes[index].arg], "Setting the start mode", { state: { startup: Object.assign({}, section.startPose, { ai_mode: section.startModes[index].key || null }) } })
+        link: section.ctl.link
+        path: "power_on.start.mode"
+        text: "Start mode"
+        labels: section.ctl.labels("power_on.start.mode")
     }
 
     StyledText {
@@ -206,14 +203,5 @@ SectionCard {
         text: "With a start mode the camera tracks in it after \"Go\" and powers on in it. Without one, \"Go\" leaves tracking stopped until a mode is picked again."
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
-    }
-
-    // A click assigns currentIndex and breaks the binding; re-sync to the camera state
-    Connections {
-        target: section.ctl
-        function onStateRefreshed() {
-            startModeRow.currentIndex = section.startModeIndex;
-            startModeRow.sync();
-        }
     }
 }

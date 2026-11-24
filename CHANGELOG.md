@@ -36,6 +36,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Tracking card: every control follows the camera's description, so a camera with other tracking
   modes shows its own; the hand area sliders send one end at a time; "Hand moves the gimbal" shows
   "not known" until it is set, as obsbot4linux cannot read it (#169).
+- Framing card: the gimbal arrows send only the move; they no longer switch the tracking to Static
+  first (use the tracking mode for that). The zoom slider and the zone area take their bounds from
+  the camera's description (#170).
 
 ## [0.29.2] - 2026-11-13
 

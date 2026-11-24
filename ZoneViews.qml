@@ -1,40 +1,39 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "lib/format.mjs" as Format
+import "lib/lists.mjs" as Lists
 
-// Named poses stored in the camera (obsbot4linux 0.12, capability zone_views): go, rename, delete,
-// save the current pose. The list is `zone.views` of the state events, [{id, name, pose}]; the
-// camera does not track by them. Rename and delete work like in the Presets card.
+// Named poses stored in the camera: go, rename, delete, save the current pose. The list is the
+// `views` of the camera's state, [{id, name, pose}]; the camera does not track by them. Rename
+// and delete work like in the Presets card. A name is sent as typed; the description's limits
+// (length, characters) only gate the buttons.
 Column {
     id: views
 
     property var ctl
 
-    readonly property var list: {
-        const l = ctl.cam.zone?.views;
-        // list wrapper from the state event, not Array.isArray
-        return l && typeof l.length === "number" ? Array.from(l) : [];
-    }
+    // null while the camera's views are not read
+    readonly property var rows: Lists.viewRows(ctl.link.camState)
+    readonly property var poseSetting: ctl.link.setting("views")?.item?.pose ?? null
+    readonly property string newProblem: Lists.nameProblem(ctl.link.device, "view.save", "name", newName.text) ?? ""
     // View id being renamed / asked to delete, -1 = none; only one row at a time
     property int renaming: -1
     property int deleting: -1
 
-    function num(v) {
-        return String(Math.round(v)).replace("-", "−");
-    }
-    function poseText(p) {
-        return "pan " + num(p.pose.pan) + "° · tilt " + num(p.pose.tilt) + "° · zoom " + Number(p.pose.zoom).toFixed(2) + "×";
+    function poseText(row) {
+        return row.pose === null ? "–" : Format.value(poseSetting, row.pose);
     }
     function reset() {
         renaming = -1;
         deleting = -1;
     }
     function save() {
-        const name = newName.text.trim();
-        if (!ctl.live || name === "")
+        if (Lists.nameProblem(ctl.link.device, "view.save", "name", newName.text) !== null || ctl.link.blocked("view.save") !== null)
             return;
+        const name = newName.text;
         newName.text = "";
-        ctl.send(["zone", "view", "save", "--", name], "Saving zone view " + name);
+        ctl.link.act("view.save", { name: name });
     }
 
     width: parent.width
@@ -49,14 +48,14 @@ Column {
 
     StyledText {
         width: parent.width
-        visible: views.list.length === 0
-        text: "No views saved"
+        visible: views.rows === null || views.rows.length === 0
+        text: views.rows === null ? "Views not read yet" : "No views saved"
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
     }
 
     Repeater {
-        model: views.list
+        model: views.rows ?? []
 
         delegate: Column {
             id: row
@@ -64,13 +63,13 @@ Column {
             required property var modelData
             readonly property bool confirmingDelete: views.deleting === modelData.id
             readonly property bool editing: views.renaming === modelData.id
+            readonly property string problem: Lists.nameProblem(views.ctl.link.device, "view.rename", "name", nameField.text) ?? ""
 
             function rename() {
-                const name = nameField.text.trim();
-                if (name === "")
+                if (problem !== "" || views.ctl.link.blocked("view.rename") !== null)
                     return;
                 views.renaming = -1;
-                views.ctl.send(["zone", "view", "rename", row.modelData.id, "--", name], "Renaming zone view");
+                views.ctl.link.act("view.rename", { id: row.modelData.id, name: nameField.text });
             }
 
             width: views.width
@@ -79,7 +78,7 @@ Column {
             StyledText {
                 width: parent.width
                 elide: Text.ElideRight
-                text: row.modelData.name
+                text: row.modelData.label
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
             }
@@ -107,12 +106,17 @@ Column {
                 id: nameField
                 width: parent.width
                 visible: row.editing
-                maximumLength: 32
                 placeholderText: "Name"
-                validator: RegularExpressionValidator {
-                    regularExpression: /[\x20-\x7e]*/
-                }
                 onAccepted: row.rename()
+            }
+
+            StyledText {
+                width: parent.width
+                wrapMode: Text.WordWrap
+                visible: row.editing && row.problem !== "" && nameField.text !== ""
+                text: row.problem
+                color: Theme.error
+                font.pixelSize: Theme.fontSizeSmall
             }
 
             Flow {
@@ -120,17 +124,18 @@ Column {
                 spacing: Theme.spacingS
 
                 DButton {
-                    visible: !row.confirmingDelete && !row.editing
                     text: "Go"
                     iconName: "my_location"
-                    enabled: views.ctl.live
-                    onClicked: views.ctl.send(["zone", "view", "go", row.modelData.id], "Moving to zone view " + row.modelData.name)
+                    visible: !row.confirmingDelete && !row.editing && views.ctl.link.has("view.go")
+                    enabled: views.ctl.link.blocked("view.go") === null
+                    onClicked: views.ctl.link.act("view.go", { id: row.modelData.id })
                 }
 
                 DButton {
-                    visible: !row.confirmingDelete && !row.editing
+                    visible: !row.confirmingDelete && !row.editing && views.ctl.link.has("view.rename")
                     text: "Rename"
                     iconName: "edit"
+                    enabled: views.ctl.link.blocked("view.rename") === null
                     onClicked: {
                         views.reset();
                         nameField.text = row.modelData.name;
@@ -140,9 +145,10 @@ Column {
                 }
 
                 DButton {
-                    visible: !row.confirmingDelete && !row.editing
+                    visible: !row.confirmingDelete && !row.editing && views.ctl.link.has("view.delete")
                     text: "Delete"
                     iconName: "delete"
+                    enabled: views.ctl.link.blocked("view.delete") === null
                     backgroundColor: Theme.errorContainer
                     textColor: Theme.onErrorContainer
                     onClicked: {
@@ -162,7 +168,7 @@ Column {
                     visible: row.editing
                     text: "Rename"
                     iconName: "check"
-                    enabled: nameField.text.trim() !== ""
+                    enabled: row.problem === "" && views.ctl.link.blocked("view.rename") === null
                     onClicked: row.rename()
                 }
 
@@ -176,11 +182,12 @@ Column {
                     visible: row.confirmingDelete
                     text: "Delete now"
                     iconName: "delete"
+                    enabled: views.ctl.link.blocked("view.delete") === null
                     backgroundColor: Theme.error
                     textColor: Theme.onError
                     onClicked: {
                         views.deleting = -1;
-                        views.ctl.send(["zone", "view", "delete", row.modelData.id], "Deleting zone view " + row.modelData.name);
+                        views.ctl.link.act("view.delete", { id: row.modelData.id });
                     }
                 }
             }
@@ -190,18 +197,24 @@ Column {
     DTextField {
         id: newName
         width: parent.width
-        maximumLength: 32
         placeholderText: "Name for the current pose"
-        validator: RegularExpressionValidator {
-            regularExpression: /[\x20-\x7e]*/
-        }
         onAccepted: views.save()
+    }
+
+    StyledText {
+        width: parent.width
+        wrapMode: Text.WordWrap
+        visible: views.newProblem !== "" && newName.text !== ""
+        text: views.newProblem
+        color: Theme.error
+        font.pixelSize: Theme.fontSizeSmall
     }
 
     DButton {
         text: "Save current pose as view"
         iconName: "save"
-        enabled: views.ctl.live && newName.text.trim() !== ""
+        visible: views.ctl.link.has("view.save")
+        enabled: views.newProblem === "" && views.ctl.link.blocked("view.save") === null
         onClicked: views.save()
     }
 
