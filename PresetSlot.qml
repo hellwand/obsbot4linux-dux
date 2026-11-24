@@ -22,7 +22,7 @@ Item {
         buttonHeight: Style.buttonHeightS
         minimumWidth: 0
         maximumWidth: slot.width
-        enabled: slot.row.used
+        enabled: slot.row.used && slot.link.blocked("preset.recall") === null
         text: slot.row.used ? slot.row.label : "Slot " + (slot.row.slot + 1)
         tooltipText: slot.row.used ? slot.row.label : ""
         backgroundColor: Theme.secondaryContainer
