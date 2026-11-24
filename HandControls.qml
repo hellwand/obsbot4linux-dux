@@ -2,9 +2,9 @@ import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
 
-// Hand tracking settings stored in the camera: area, axes, return time and the gimbal switch.
-// Each control is on its own path of the description. Shown by the Tracking card while Hand is
-// the tracking mode.
+// Hand tracking settings: area, axes, return time and the gimbal switch, which cannot be read back
+// from the camera. Each control is on its own path of the description. Shown by the Tracking card
+// while Hand is the tracking mode.
 Column {
     id: hand
 

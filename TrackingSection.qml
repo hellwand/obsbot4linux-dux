@@ -23,7 +23,7 @@ SectionCard {
         const link = ctl.link;
         if (!link.has("hand.area.pan") || !link.has("hand.area.tilt"))
             return "";
-        return "Hand area: pan " + Format.value(link.setting("hand.area.pan"), link.value("hand.area.pan"), ctl.labels("hand.area.pan")) + " · tilt " + Format.value(link.setting("hand.area.tilt"), link.value("hand.area.tilt"), ctl.labels("hand.area.tilt"));
+        return "Hand area: pan " + Format.value(link.setting("hand.area.pan"), link.value("hand.area.pan"), ctl.labels("hand.area.pan")) + ", tilt " + Format.value(link.setting("hand.area.tilt"), link.value("hand.area.tilt"), ctl.labels("hand.area.tilt"));
     }
 
     title: "Tracking"
@@ -48,7 +48,7 @@ SectionCard {
         labels: section.ctl.labels("tracking.profile")
     }
 
-    // Gated by the description and blocked() only; the hint says when the camera uses it
+    // Gated by the description and blocked() only; the hint below says when the camera uses it
     SettingChips {
         width: parent.width
         visible: section.ctl.link.has("hand.side") && !section.compact
@@ -56,6 +56,14 @@ SectionCard {
         path: "hand.side"
         text: "Tracked hand"
         labels: section.ctl.labels("hand.side")
+    }
+
+    StyledText {
+        width: parent.width
+        visible: section.ctl.link.has("hand.side") && !section.compact
+        text: "Used in Hand mode"
+        color: Theme.surfaceVariantText
+        font.pixelSize: Theme.fontSizeSmall
     }
 
     Flow {
@@ -104,8 +112,8 @@ SectionCard {
         ctl: section.ctl
     }
 
-    // When the target left the area the camera keeps tracking and takes a new one. Not in the
-    // compact tile.
+    // Measured with zone tracking on (Tiny 2 Lite): when the target left the area the camera kept
+    // tracking and took a new one. Not in the compact tile.
     SettingToggle {
         width: parent.width
         visible: section.ctl.link.has("zone.follow") && !section.compact
