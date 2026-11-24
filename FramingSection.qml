@@ -73,7 +73,11 @@ SectionCard {
                 iconName: "filter_center_focus"
                 enabled: section.centerOk && section.ctl.link.blocked("gimbal.move") === null
                 tooltipText: "Center"
-                onClicked: section.ctl.link.act("gimbal.move", { pan: 0, tilt: 0 })
+                onClicked: {
+                    // the target of this own move is the base of the next step, like an arrow's
+                    section.lastMove = { pan: 0, tilt: 0, at: Date.now() };
+                    section.ctl.link.act("gimbal.move", { pan: 0, tilt: 0 });
+                }
             }
             DIconButton {
                 variant: "tonal"
