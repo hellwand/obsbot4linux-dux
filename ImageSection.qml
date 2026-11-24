@@ -1,16 +1,45 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "lib/format.mjs" as Format
 
-// Image adjustments (UVC controls) with the reset button at the bottom
+// Image adjustments with the reset button at the bottom
 SectionCard {
     id: section
 
     property var ctl
 
+    // The sliders of this card; the defaults reset covers exactly these (10.3 D: the widget's
+    // product choice, unchanged from 0.29)
+    readonly property var controls: [
+        {
+            path: "image.brightness",
+            text: "Brightness"
+        },
+        {
+            path: "image.contrast",
+            text: "Contrast"
+        },
+        {
+            path: "image.saturation",
+            text: "Saturation"
+        },
+        {
+            path: "image.sharpness",
+            text: "Sharpness"
+        },
+        {
+            path: "exposure.compensation",
+            text: "Backlight compensation"
+        }
+    ]
+    readonly property var shown: controls.filter(c => ctl.link.has(c.path))
+    readonly property var resetPatch: ctl.link.defaultsPatch(controls.map(c => c.path))
+
     title: "Image"
     collapsible: true
-    summary: (ctl.imageAtDefaults ? "Defaults: " : "") + ctl.imageControls.map(c => c.label + " " + (ctl.image[c.name]?.value ?? "–")).join(" · ")
+    visible: ctl.cardEnabled("Image") && shown.length > 0
+    summary: (shown.length > 0 && resetPatch === null ? "Defaults: " : "") + shown.map(c => c.text + " " + Format.value(ctl.link.setting(c.path), ctl.link.value(c.path), ctl.labels(c.path))).join(" · ")
     // the camera takes these while asleep too and keeps them when it wakes
     enabled: ctl.available || arranging
     opacity: ctl.available || arranging ? 1 : 0.38
@@ -20,16 +49,14 @@ SectionCard {
         spacing: Theme.spacingS
 
         Repeater {
-            model: section.ctl.imageControls
+            model: section.controls
 
-            LabeledSlider {
+            SettingSlider {
                 required property var modelData
                 width: parent.width
-                label: modelData.label
-                minimum: section.ctl.image[modelData.name]?.min ?? 0
-                maximum: section.ctl.image[modelData.name]?.max ?? 100
-                value: section.ctl.image[modelData.name]?.value ?? 0
-                onMoved: value => section.ctl.setControl(modelData.name, value)
+                link: section.ctl.link
+                path: modelData.path
+                text: modelData.text
             }
         }
     }
@@ -43,7 +70,9 @@ SectionCard {
             anchors.right: parent.right
             text: "Reset to defaults"
             iconName: "restart_alt"
-            onClicked: section.ctl.imageControls.forEach(c => section.ctl.setControl(c.name, section.ctl.image[c.name]?.default ?? 0))
+            // one set of the camera's own defaults; nothing to reset: disabled
+            enabled: section.resetPatch !== null
+            onClicked: section.ctl.link.setPatch(section.resetPatch)
         }
     }
 }

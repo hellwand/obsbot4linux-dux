@@ -707,7 +707,6 @@ PluginComponent {
                         width: parent.width
                         cardId: "image"
                         arranger: popout
-                        visible: root.cardEnabled("Image")
                         ctl: root
                         controlled: true
                         expanded: root.isOpen("image")

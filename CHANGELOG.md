@@ -42,6 +42,7 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Presets card: as many slots as the camera has; "Save current pose" sends no name, and a preset
   without a name shows "(unnamed)" here only. The list comes with the camera's state, so "Reading
   presets…" and its time-out are gone (#171).
+- Picture card: Exposure (Auto / Manual) and Metering (Face / Global) are two rows; exposure time stays greyed out, with the reason, until the exposure is manual. Image card: "Reset to defaults" sends the camera's own defaults of its sliders in one request (#176).
 
 ## [0.29.2] - 2026-11-13
 
