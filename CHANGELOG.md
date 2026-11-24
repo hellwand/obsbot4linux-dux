@@ -23,6 +23,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - The widget connects to the obsbot4linux 1.0 daemon on its Unix socket (protocol 2) instead of
   running `obsbot4linux watch`; controls are bound to a path of the camera's description and show a
   pending value as "pending" (#162).
+- CI tests the widget's link against the obsbot4linux daemon in fake mode (two fake cameras of
+  different shape and one unsupported device), built from obsbot4linux's 1.0 branch (#163).
 
 ## [0.29.2] - 2026-11-13
 

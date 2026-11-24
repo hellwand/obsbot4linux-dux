@@ -124,6 +124,7 @@ export const STATES = {
       hand: {
         area: { pan: { max: 150, min: -150 }, tilt: { max: 90, min: -70 } },
         axes: { pan: false, tilt: false },
+        move_gimbal: null,
         return: null,
         return_after: 0,
         side: "left",
@@ -138,7 +139,7 @@ export const STATES = {
         sharpness: 50.0,
         white_balance: { auto: true, temperature: 5000 },
       },
-      led: { brightness: 0 },
+      led: { blink: null, brightness: 0 },
       on_air: { active: false, apps: [] },
       power_on: {
         mode: "static",
@@ -190,9 +191,9 @@ export const STATES = {
       pending: {},
       unread: [],
       asleep: false,
-      beacon: { color: "red" },
+      beacon: { color: "red", pulse: null },
       exposure: { mode: "auto", time: 100 },
-      led: { brightness: 0 },
+      led: { blink: null, brightness: 0 },
       on_air: { active: false, apps: [] },
       presets: [],
       tracking: { mode: "off" },
