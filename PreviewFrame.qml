@@ -43,7 +43,7 @@ ClippingRectangle {
     // The daemon's own on-air sample, "qs" included (not ctl.streaming, which also counts our preview)
     readonly property var streamingApps: (ctl.link.value("on_air.apps") ?? []).map(a => String(a.name))
     readonly property bool otherAppStreams: !(ctl.previewRunning ?? ctl.previewOn) && ctl.link.value("on_air.active") === true && !(streamingApps.length > 0 && streamingApps.every(a => a === "qs"))
-    readonly property bool waking: ctl.previewOn && ctl.available && !videoMissing && !videoFailed && (!ctl.live || (startedAsleep && !frameSeen && !ctl.live))
+    readonly property bool waking: ctl.previewOn && ctl.available && !videoMissing && !videoFailed && !ctl.live
     readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing && !videoFailed && !waking
     readonly property bool overlayShown: !previewShown || (interactive && frameHover.hovered)
     readonly property var hint: previewShown
