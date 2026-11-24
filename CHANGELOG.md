@@ -45,6 +45,14 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Picture card: Exposure (Auto / Manual) and Metering (Face / Global) are two rows; exposure time stays greyed out, with the reason, until the exposure is manual. Image card: "Reset to defaults" sends the camera's own defaults of its sliders in one request (#176).
 - Device tab: auto-sleep is a switch plus its time; the status LED brightness is a slider with
   the camera's own range; "Blink status LED" shows "not known" until it is set (#177).
+- Desktop widget: its own link to the obsbot4linux 1.0 daemon, a camera picker, as many preset
+  buttons as the camera has; the preview frame says when the daemon is not running and how to start
+  it, and when a camera is not supported (#180).
+
+### Removed
+
+- The `obsbot4linux watch` process and the 3 s hold of values (`CameraWatch.qml`,
+  `OptimisticState.qml`) (#180).
 
 ## [0.29.2] - 2026-11-13
 

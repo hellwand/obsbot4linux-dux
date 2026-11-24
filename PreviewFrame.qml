@@ -9,9 +9,9 @@ import qs.DCommon.Widgets
 // given (the popout card and the desktop widget make it 16:9), the video is fitted inside. Used by
 // the popout's PreviewPane and the desktop widget.
 //
-// ctl is what the frame needs from the camera: available, toolMissing, awake, live, previewReady,
+// ctl is what the frame needs from the camera: link, available, live, problem, previewReady,
 // videoNode, previewOn (read/write), previewRunning (a preview of ours runs on any surface),
-// interactionActive, refresh(), assumeAwake(), awakeReported.
+// showTargetBox, interactionActive, refresh().
 // interactive: false ignores hover and button (desktop edit mode).
 ClippingRectangle {
     id: frame
@@ -40,17 +40,22 @@ ClippingRectangle {
     // The camera is read while this frame's preview is off, and no preview of ours runs on any
     // surface (the popout, a desktop widget): another app has it. Qt's own reads are not named by
     // obsbot4linux, so an empty list counts as an app; a list of only "qs" is the shell itself.
-    readonly property var streamingApps: ctl.cam?.streaming_apps ?? []
-    readonly property bool otherAppStreams: !(ctl.previewRunning ?? ctl.previewOn) && ctl.cam?.streaming === true && !(streamingApps.length > 0 && streamingApps.every(a => a === "qs"))
-    readonly property bool waking: ctl.previewOn && ctl.available && !videoMissing && !videoFailed && (!ctl.awake || (startedAsleep && !frameSeen && !ctl.awakeReported))
+    // The daemon's own on-air sample, "qs" included (not ctl.streaming, which also counts our preview)
+    readonly property var streamingApps: (ctl.link.value("on_air.apps") ?? []).map(a => String(a.name))
+    readonly property bool otherAppStreams: !(ctl.previewRunning ?? ctl.previewOn) && ctl.link.value("on_air.active") === true && !(streamingApps.length > 0 && streamingApps.every(a => a === "qs"))
+    readonly property bool waking: ctl.previewOn && ctl.available && !videoMissing && !videoFailed && (!ctl.live || (startedAsleep && !frameSeen && !ctl.live))
     readonly property bool previewShown: ctl.previewOn && ctl.live && !videoMissing && !videoFailed && !waking
     readonly property bool overlayShown: !previewShown || (interactive && frameHover.hovered)
     readonly property var hint: previewShown
         ? { icon: "visibility", title: "Preview is on", body: "No other app can use the camera while it's on. Stop it before a call.", button: "Stop preview", buttonIcon: "stop" }
+        : ctl.problem !== null
+        ? { icon: "usb_off", title: ctl.problem.title, body: ctl.problem.body, button: "Retry", buttonIcon: "refresh" }
+        : ctl.link.device !== null && ctl.link.device.support === "unsupported"
+        ? { icon: "videocam_off", title: "Camera not supported", body: ctl.link.unsupportedHint, button: "", buttonIcon: "" }
+        : ctl.link.device === null
+        ? { icon: "videocam_off", title: "No camera", body: "Plug in a camera, or pick one.", button: "", buttonIcon: "" }
         : !ctl.available
-        ? (ctl.toolMissing
-            ? { icon: "terminal", title: "Control tool not found", body: "obsbot4linux could not be run. Check that it is installed and on PATH.", button: "Retry", buttonIcon: "refresh" }
-            : { icon: "usb_off", title: "Camera not connected", body: "The camera doesn't respond on USB. Plug it back in.", button: "Retry", buttonIcon: "refresh" })
+        ? { icon: "usb_off", title: "Camera not connected", body: "The camera doesn't respond on USB. Plug it back in.", button: "Retry", buttonIcon: "refresh" }
         : videoMissing
             ? { icon: "extension_off", title: "Preview unavailable", body: "The live preview needs qt6-multimedia. All other controls work without it.", button: ctl.previewOn ? "Stop preview" : "", buttonIcon: "stop" }
         : videoFailed
@@ -59,7 +64,7 @@ ClippingRectangle {
                 : { icon: "videocam_off", title: "Camera is in use by another app", body: "The preview cannot open the camera. Close the other app, then start the preview again.", button: "Stop preview", buttonIcon: "stop" })
         : waking
             ? { icon: "hourglass_empty", title: "Waking camera…", body: "Opening the stream wakes the camera. The picture follows in a moment.", button: "Stop preview", buttonIcon: "stop" }
-        : !ctl.awake
+        : !ctl.live
             ? { icon: "videocam_off", title: "Camera is asleep", body: "Lens is stowed face-down. The preview wakes it; Wake in the controls only wakes it.", button: "Start preview", buttonIcon: "play_arrow" }
         : !ctl.previewReady
             ? { icon: "hourglass_empty", title: "Waiting for the camera", body: "The preview starts once the camera's video device is known.", button: "", buttonIcon: "" }
@@ -77,11 +82,8 @@ ClippingRectangle {
         else if (videoMissing || videoFailed)
             ctl.previewOn = false;
         else if (ctl.previewReady) {
-            startedAsleep = !ctl.awake;
+            startedAsleep = !ctl.live;
             ctl.previewOn = true;
-            // opening the stream wakes the camera: show it awake until an event says so (3 s)
-            if (startedAsleep)
-                ctl.assumeAwake();
         }
     }
 
@@ -121,28 +123,29 @@ ClippingRectangle {
         when: videoLoader.status === Loader.Ready
     }
 
-    // Experimental: the tracked target's box (target.box, normalised, read as left, top, right,
-    // bottom) over the 16:9 video, which PreserveAspectFit centres in the frame
+    // Experimental: the tracked target's box (tracking.target.box, an object with left, top, right
+    // and bottom as fractions of the picture, or null) over the 16:9 video, which PreserveAspectFit
+    // centres in the frame
     Item {
         readonly property real videoWidth: Math.min(frame.width, frame.height * 16 / 9)
-        readonly property var box: frame.ctl.cam?.target?.box ?? null
+        readonly property var box: frame.ctl.link.value("tracking.target.box")
         x: (frame.width - width) / 2
         y: (frame.height - height) / 2
         width: videoWidth
         height: videoWidth * 9 / 16
-        visible: frame.previewShown && (frame.ctl.showTargetBox ?? false) && box !== null && box.length === 4
+        visible: frame.previewShown && (frame.ctl.showTargetBox ?? false) && box !== null
 
         Rectangle {
-            readonly property var b: parent.box ?? [0, 0, 0, 0]
-            x: b[0] * parent.width
-            y: b[1] * parent.height
-            width: Math.max(0, (b[2] - b[0]) * parent.width)
-            height: Math.max(0, (b[3] - b[1]) * parent.height)
+            readonly property var b: parent.box ?? ({ left: 0, top: 0, right: 0, bottom: 0 })
+            x: b.left * parent.width
+            y: b.top * parent.height
+            width: Math.max(0, (b.right - b.left) * parent.width)
+            height: Math.max(0, (b.bottom - b.top) * parent.height)
             color: "transparent"
             radius: Theme.cornerRadius / 2
             border.width: Theme.outlineWidthFocused
             // green while the camera has the target, warning colour while it searches
-            border.color: frame.ctl.cam?.target?.detected === false ? Theme.warning : Theme.success
+            border.color: frame.ctl.link.value("tracking.target.detected") === false ? Theme.warning : Theme.success
 
             Behavior on x { NumberAnimation { duration: 250 } }
             Behavior on y { NumberAnimation { duration: 250 } }

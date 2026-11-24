@@ -2,15 +2,17 @@ import QtQuick
 import qs.Common
 import qs.Services
 import qs.Modules.Plugins
+import "lib/labels.mjs" as Labels
+import "lib/describe.mjs" as Describe
 
 // Desktop surface of the plugin, one fixed layout like the popout: the picture area on top
 // (PreviewFrame: dark with the "Preview is off" hint and Start button, live picture while the
 // preview runs, Stop on hover) and the control panel below it (DesktopPanel: status, tracking mode,
 // zoom, presets, sleep/wake). Nothing here starts the preview by itself.
 //
-// This surface runs its own `obsbot4linux watch` (the bar widget, the Control Center tile and
-// the popout are separate objects; the state is not shared between surfaces, only the
-// "who runs a preview" flag, see PreviewClaim).
+// This surface has its own link to the obsbot4linux daemon (CameraLink; the bar widget, the
+// Control Center tile and the popout are separate objects; the state is not shared between
+// surfaces, only the "who runs a preview" flag, see PreviewClaim). It asks for no live topics.
 DesktopPluginComponent {
     id: root
 
@@ -43,7 +45,7 @@ DesktopPluginComponent {
     // DMS unloads desktop widgets while the desktop is being edited, but the editor shows its own
     // copy of them: that one is inert
     readonly property bool editing: DesktopWidgetRegistry.editing
-    // On the lock screen the widget is inert too: no picture, no controls, no watcher. DMS declares
+    // On the lock screen the widget is inert too: no picture, no controls, no connection. DMS declares
     // and sets `lockScreen` on the plugin component (DesktopPluginComponent, in DMS 2.0.0 as well),
     // a moment after this object is created.
     readonly property bool inert: editing || lockScreen
@@ -52,39 +54,53 @@ DesktopPluginComponent {
     // fit the card to the screen
     property var screen: null
 
-    // Camera state from obsbot4linux watch, same fields as the popout reads, with the changes sent
-    // but not yet confirmed by an event on top (OptimisticState, like the popout)
-    property alias cam: optimistic.cam
     // The bar widget's "Show target box" switch (a global plugin setting, not this instance's).
     // SettingsData replaces pluginSettings on every save, so the binding follows at once.
     readonly property bool showTargetBox: SettingsData.pluginSettings[pluginId]?.showTargetBox ?? false
-    readonly property bool toolMissing: watch.toolMissing
-    readonly property string videoNode: watch.videoNode
     property bool previewOn: false
-    property int requestId: 0
 
-    readonly property bool available: cam.available === true
-    readonly property bool awake: available && cam.status?.asleep === false
-    readonly property bool live: available && awake
-    readonly property string device: cam.device ?? ""
-    readonly property bool previewReady: device !== "" && videoNode !== ""
+    // The members below are those of the popout root (ObsbotWidget) that PreviewFrame,
+    // DesktopSide and DesktopBottom read as `ctl`. Not `id: link`: an id and a property of the
+    // same name shadow each other; inside this file `link` is this alias.
+    readonly property alias link: cameraLink
+
+    function labels(path) {
+        return Labels.labelsFor(path);
+    }
+    readonly property bool available: link.usable
+    readonly property bool live: link.awake
+    readonly property var problem: Labels.problemText(link.problem)
+    readonly property bool streaming: link.value("on_air.active") === true || previewRunning
+    readonly property var streamingApps: {
+        const apps = link.value("on_air.apps");
+        const names = Array.isArray(apps) ? apps.map(a => String(a.name)).filter(n => n !== "qs") : [];
+        return previewRunning ? names.concat(["qs"]) : names;
+    }
+    readonly property string videoNode: link.device !== null && link.device.video_node ? link.device.video_node : ""
+    readonly property bool previewReady: videoNode !== ""
+    // Decision 14: "Static" for static, "Tracking" for a mode the widget names, else the value's text
+    readonly property string modeText: {
+        const mode = link.value("tracking.mode");
+        if (mode === null || mode === undefined)
+            return "";
+        if (mode === "static")
+            return "Static";
+        return mode in Labels.labelsFor("tracking.mode") ? "Tracking" : Describe.humanize(mode);
+    }
     // Loads Qt Multimedia; not while inert
     readonly property bool interactionActive: !inert
 
     // Stop rules: whenever the camera goes away (unplugged, lost) or falls asleep while the preview
     // was running (a preview started while it sleeps stays on: opening the stream wakes it, #93),
-    // and while inert (editing, lock screen). Only the camera's own report counts as awake here,
-    // not the optimistic value shown meanwhile (#98). DMS also unloads the widget when it is
-    // disabled or removed, which closes the camera. Otherwise the preview keeps running until the
-    // user stops it.
+    // and while inert (editing, lock screen). `live` is the state's own report; there is no
+    // optimistic value of it. DMS also unloads the widget when it is disabled or removed, which
+    // closes the camera. Otherwise the preview keeps running until the user stops it.
     property bool previewWasAwake: false
-    onPreviewOnChanged: previewWasAwake = previewOn && awakeReported
-    onAwakeReportedChanged: {
-        if (awakeReported && previewOn)
+    onPreviewOnChanged: previewWasAwake = previewOn && live
+    onLiveChanged: {
+        if (live && previewOn)
             previewWasAwake = true;
-    }
-    onAwakeChanged: {
-        if (!awake && previewWasAwake)
+        if (!live && previewWasAwake)
             previewOn = false;
     }
     onAvailableChanged: {
@@ -97,149 +113,32 @@ DesktopPluginComponent {
             previewOn = false;
     }
 
-    // Same keys and arguments as ObsbotWidget.trackingModes (`obsbot4linux tracking <arg>`)
-    readonly property var trackingModes: [
-        { label: "Static", arg: "static", key: "static" },
-        { label: "Normal Tracking", arg: "normal", key: "normal" },
-        { label: "Upper Body", arg: "upper-body", key: "upper_body" },
-        { label: "Close-up", arg: "close-up", key: "close_up" },
-        { label: "Headless", arg: "headless", key: "headless" },
-        { label: "Lower Body", arg: "lower-body", key: "lower_body" },
-        { label: "Hand", arg: "hand", key: "hand" },
-        { label: "Group", arg: "group", key: "group" }
-    ]
-    // Same as ObsbotWidget.speeds (`obsbot4linux speed <arg>`); Headroom needs obsbot4linux 0.11
-    readonly property var speeds: [
-        { label: "Standard", arg: "standard" },
-        { label: "Headroom", arg: "headroom", needs: "speed_headroom" },
-        { label: "Sport", arg: "sport" }
-    ]
-    readonly property var speedOptions: speeds.filter(s => !s.needs || has(s.needs))
-    readonly property var status: cam.status ?? ({})
-    readonly property string aiMode: trackingModes.find(m => m.key === status.ai_mode)?.label ?? ""
-    readonly property real zoomFactor: cam.zoom?.factor ?? 1
-    // [min, max] zoom factor; [1, 1] until obsbot4linux reported its limits
-    readonly property var zoomRange: cam.limits?.zoom ?? [1, 1]
-    // Any application reads the camera, the widget's own preview included (obsbot4linux's kernel probe)
-    readonly property bool streaming: cam.streaming === true
-
-    function has(name) {
-        return (cam.capabilities ?? []).indexOf(name) >= 0;
-    }
-
-    // Sends `obsbot4linux <args>` and flips the UI to `changes` at once; the next state event
-    // confirms it, errors are shown by the watcher
-    function send(args, changes) {
-        if (!watch.running)
-            return;
-        const id = ++root.requestId;
-        if (changes)
-            optimistic.change(id, changes);
-        watch.write(id, args);
-    }
-
-    // Retry button: start the watcher again now
+    // Retry button: connect again now
     function refresh() {
-        watch.refresh();
+        cameraLink.retry();
     }
 
-    // The camera's own state says awake (without the optimistic patches)
-    readonly property bool awakeReported: optimistic.truth.available === true && optimistic.truth.status?.asleep === false
-
-    function setAwake(on) {
-        if (!watch.running)
+    // One act: wake while asleep, else sleep. The switch then follows the state (spec 4.4:
+    // clients wait for the state, never for their own value). As in 0.29, the preview stops
+    // when the user sends sleep; a preview started on a sleeping camera stays on while it wakes.
+    function toggleAwake() {
+        if (!available)
             return;
-        if (!on)
+        if (live)
             previewOn = false;
-        root.send([on ? "wake" : "sleep"], { status: { asleep: !on } });
+        link.act(live ? "sleep" : "wake", {});
     }
 
-    // The preview wakes a sleeping camera by opening the stream: show it awake at once
-    function assumeAwake() {
-        optimistic.change(++root.requestId, { status: { asleep: false } });
-    }
-
-    function setMode(index) {
-        const mode = root.trackingModes[index];
-        root.send(["tracking", mode.arg], { status: { ai_mode: mode.key } });
-    }
-
-    function setSpeed(index) {
-        const speed = root.speedOptions[index];
-        root.send(["speed", speed.arg], { status: { tracking_speed: speed.arg } });
-    }
-
-    function setZoom(factor) {
-        const next = Math.max(root.zoomRange[0], Math.min(root.zoomRange[1], Math.round(factor * 100) / 100));
-        root.send(["zoom", next.toFixed(2)], { zoom: { factor: next } });
-    }
-
-    // The +/- buttons: 0.5 per click within the range
-    function stepZoom(delta) {
-        root.setZoom(root.zoomFactor + delta);
-    }
-
-    // Presets stored in the camera, [{slot, name, pose}] for the slots in use (empty slots are not
-    // listed). `listedPresets` is the answer to `preset list`, null until it came.
-    property var listedPresets: null
-    // With obsbot4linux 0.13 (capability preset_state) the list is part of the state events and is
-    // re-sent after every change (null: no answer); older versions are asked with `preset list`.
-    // Arrays from the state may come as list wrappers, hence length and Array.from.
-    readonly property var presets: {
-        if (!has("preset_state"))
-            return listedPresets;
-        const list = cam.presets;
-        return list && typeof list.length === "number" ? Array.from(list) : null;
-    }
-    property bool presetsFailed: false
-    property int presetListId: 0
-
-    function refreshPresets() {
-        if (!watch.running || root.has("preset_state"))
+    // Mouse wheel and the zoom buttons: 0.1 per notch, rounded to the description's precision of
+    // zoom.factor and inside its bounds, one set
+    function stepZoom(notches) {
+        const spec = link.spec("zoom.factor");
+        const now = link.value("zoom.factor");
+        if (!spec || spec.min === null || spec.max === null || typeof now !== "number" || link.blocked("zoom.factor") !== null)
             return;
-        root.presetsFailed = false;
-        root.presetListId = ++root.requestId;
-        watch.write(root.presetListId, ["preset", "list"]);
-        presetTimeout.restart();
-    }
-
-    function recallPreset(slot) {
-        root.send(["preset", "recall", slot]);
-    }
-
-    function handleReply(msg) {
-        // the optimistic change of this request did not happen
-        if (msg.ok === false)
-            optimistic.fail(msg.id);
-        if (msg.id !== root.presetListId)
-            return;
-        root.presetListId = 0;
-        const list = msg.result?.value;
-        // not Array.isArray: the reply went through a signal, which hands arrays over as list
-        // wrappers that fail it
-        if (msg.ok !== false && list && typeof list.length === "number") {
-            root.listedPresets = Array.from(list);
-            root.presetsFailed = false;
-            presetTimeout.stop();
-        } else {
-            root.presetsFailed = true;
-        }
-    }
-
-    // The list is read when the camera shows up (and again after a watch restart), not with every event
-    readonly property bool presetsWanted: available && has("preset") && !inert
-    onPresetsWantedChanged: {
-        if (presetsWanted)
-            refreshPresets();
-    }
-
-    Timer {
-        id: presetTimeout
-        interval: 8000
-        onTriggered: {
-            if (root.listedPresets === null)
-                root.presetsFailed = true;
-        }
+        const next = Math.max(spec.min, Math.min(spec.max, Describe.roundTo(now + notches * 0.1, spec.precision)));
+        if (next !== now)
+            link.set("zoom.factor", next);
     }
 
     // the screen or the side column's width changed: ask again (layout only, no retry)
@@ -268,25 +167,19 @@ DesktopPluginComponent {
     // A preview of ours runs on some surface (this one, the popout or another desktop widget)
     readonly property bool previewRunning: previewOn || previewClaim.anyRunning
 
-    OptimisticState {
-        id: optimistic
-    }
-
-    // Errors are logged and shown as a toast by the watcher
-    CameraWatch {
-        id: watch
-        active: !root.lockScreen
+    // Errors are logged and shown as a toast by the link
+    CameraLink {
+        id: cameraLink
+        active: !root.inert
         instanceName: "desktop widget" + (root.screen?.name ? " on screen " + root.screen.name : "")
-        device: root.device
-        onStateEvent: next => optimistic.receive(next)
-        onReply: msg => root.handleReply(msg)
-        onStopped: {
-            optimistic.reset();
-            root.listedPresets = null;
-            root.presetListId = 0;
-            root.presetsFailed = false;
-            presetTimeout.stop();
-        }
+        client: "obsbot4linux-dux"
+        // No live topics on the desktop (decision 13)
+        liveView: ({
+                open: false,
+                pose: false,
+                target: false,
+                auto: false
+            })
     }
 
     // One card like the popout's cards: picture area inset at the top, the controls below
