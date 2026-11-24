@@ -37,7 +37,7 @@ find_qml() {
 	local dir
 	while IFS= read -r dir; do
 		if [ -n "$dir" ] && [ -x "$dir/qml" ] && [ -f "$dir/qml" ] &&
-			"$dir/qml" --version 2>&1 | grep -q -E ' 6\.[0-9]+'; then
+			QT_QPA_PLATFORM=offscreen "$dir/qml" --version 2>&1 | grep -q -E ' 6\.[0-9]+'; then
 			printf '%s\n' "$dir/qml"
 			return 0
 		fi
