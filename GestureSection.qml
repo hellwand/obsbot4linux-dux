@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "lib/format.mjs" as Format
 
 // Gesture switches and how far the zoom gesture zooms in
 SectionCard {
@@ -8,58 +9,76 @@ SectionCard {
 
     property var ctl
 
-    // label shown, CLI argument, key in obsbot4linux's tracking state
+    // label shown and the description's path of each switch
     readonly property var gestures: [
-        { label: "Target lock", arg: "target-lock", key: "target_lock" },
-        { label: "Zoom", arg: "zoom", key: "zoom_gesture" },
-        { label: "Dynamic zoom", arg: "dynamic-zoom", key: "dynamic_zoom" },
-        { label: "Direction change", arg: "direction-change", key: "direction_change", description: "Reverses which hand movement zooms in or out with Dynamic zoom.", needs: "dynamic_zoom" }
+        {
+            label: "Target lock",
+            path: "gestures.target_lock"
+        },
+        {
+            label: "Zoom",
+            path: "gestures.zoom"
+        },
+        {
+            label: "Dynamic zoom",
+            path: "gestures.dynamic_zoom"
+        },
+        {
+            label: "Direction change",
+            path: "gestures.direction_change"
+        }
     ]
-    readonly property int onCount: gestures.filter(g => ctl.tracking[g.key] === true).length
+    readonly property var gesturesOn: gestures.filter(g => ctl.link.value(g.path) === true)
+    readonly property bool anyKnown: gestures.some(g => ctl.link.has(g.path) && ctl.link.value(g.path) !== null)
+    readonly property string ratioText: ctl.link.has("gestures.zoom_ratio") && ctl.link.value("gestures.zoom_ratio") !== null ? Format.value(ctl.link.setting("gestures.zoom_ratio"), ctl.link.value("gestures.zoom_ratio")) : ""
 
     title: "Gestures"
     collapsible: true
     expanded: false
-    visible: ctl.cardEnabled("Gestures") && ctl.has("gesture")
-    summary: (onCount === 0 ? "All off" : gestures.filter(g => ctl.tracking[g.key] === true).map(g => g.label).join(", ") + " on") + (ctl.tracking.gesture_zoom_ratio !== undefined ? " · zoom ratio " + ctl.tracking.gesture_zoom_ratio.toFixed(1) + "×" : "")
+    visible: ctl.cardEnabled("Gestures") && gestures.concat([
+        {
+            path: "gestures.zoom_ratio"
+        }
+    ]).some(g => ctl.link.has(g.path))
+    summary: (!anyKnown ? "" : gesturesOn.length === 0 ? "All off" : gesturesOn.map(g => g.label).join(", ") + " on") + (ratioText !== "" ? (anyKnown ? " · " : "") + "zoom ratio " + ratioText : "")
     // the camera takes these while asleep too and keeps them when it wakes
     enabled: ctl.available || arranging
     opacity: ctl.available || arranging ? 1 : 0.38
 
-    Repeater {
-        model: section.gestures
-
-        ToggleRow {
-            required property var modelData
-            width: parent.width
-            label: modelData.label
-            description: modelData.description ?? ""
-            // reverses Dynamic zoom's direction, does nothing while that is off; still shows the camera's value
-            enabled: modelData.needs === undefined || section.ctl.tracking[modelData.needs] === true
-            opacity: enabled ? 1 : 0.38
-            checked: section.ctl.tracking[modelData.key] === true
-            onToggled: checked => section.ctl.send(["gesture", "set", modelData.arg, checked ? "on" : "off"], (checked ? "Turning on " : "Turning off ") + modelData.label.toLowerCase() + " gesture", { tracking: { [modelData.key]: checked } })
-        }
-    }
-
-    // Tenths of the ratio, 1.0 to 4.0; sent once the slider rests, not on every step
-    LabeledSlider {
+    SettingToggle {
         width: parent.width
-        label: "Zoom gesture ratio"
-        minimum: 10
-        maximum: 40
-        value: Math.round((section.ctl.tracking.gesture_zoom_ratio ?? 2) * 10)
-        formatValue: v => (v / 10).toFixed(1) + "×"
-        onMoved: value => {
-            ratioTimer.ratio = value / 10;
-            ratioTimer.restart();
-        }
+        link: section.ctl.link
+        path: "gestures.target_lock"
+        text: "Target lock"
     }
 
-    Timer {
-        id: ratioTimer
-        property real ratio: 2
-        interval: 400
-        onTriggered: section.ctl.send(["gesture", "zoom-ratio", ratio.toFixed(1)], "Setting zoom gesture ratio to " + ratio.toFixed(1) + "×", { tracking: { gesture_zoom_ratio: ratio } })
+    SettingToggle {
+        width: parent.width
+        link: section.ctl.link
+        path: "gestures.zoom"
+        text: "Zoom"
+    }
+
+    SettingToggle {
+        width: parent.width
+        link: section.ctl.link
+        path: "gestures.dynamic_zoom"
+        text: "Dynamic zoom"
+    }
+
+    SettingToggle {
+        width: parent.width
+        link: section.ctl.link
+        path: "gestures.direction_change"
+        text: "Direction change"
+        hint: "Reverses which hand movement zooms in or out with Dynamic zoom."
+    }
+
+    // The bounds and the step come from the description; sent once when the slider rests
+    SettingSlider {
+        width: parent.width
+        link: section.ctl.link
+        path: "gestures.zoom_ratio"
+        text: "Zoom gesture ratio"
     }
 }

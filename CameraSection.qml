@@ -1,94 +1,74 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "lib/format.mjs" as Format
 
-// Field of view, status LED, mirror and invert (obsbot4linux)
+// Field of view, status LED, mirror and invert, every control on a path of the selected
+// camera's description (obsbot4linux)
 SectionCard {
     id: section
 
     property var ctl
 
-    readonly property var fovs: ["Wide", "Medium", "Narrow"]
-    readonly property var leds: ["Off", "1", "2", "3"]
-
-    // "custom" after the zoom was set freely
-    function fovName() {
-        const f = ctl.status.field_of_view ?? "";
-        return f.charAt(0).toUpperCase() + f.slice(1);
+    // The value of a path as text, "" while the camera does not report it
+    function shown(path) {
+        const link = ctl.link;
+        return link.has(path) && link.value(path) !== null ? Format.value(link.setting(path), link.value(path), ctl.labels(path)) : "";
     }
 
-    // Read-only info lines; a line shows only when obsbot4linux reports the field.
-    // anti_flicker is a string since obsbot4linux 0.9.0, a number before (same order).
-    function antiFlicker() {
-        const a = ctl.status.anti_flicker;
-        const names = ["off", "50 Hz", "60 Hz", "auto"];
-        if (typeof a === "number")
-            return names[a] ?? "";
-        return a === undefined ? "" : (names.find(n => n.replace(" ", "").toLowerCase() === String(a).toLowerCase()) ?? String(a));
+    // Read-only info lines from the device's entry; a missing firmware shows as "–"
+    readonly property var infoLines: {
+        const device = ctl.link.device;
+        if (device === null)
+            return [];
+        return [["Camera", device.name ?? ""], ["Firmware", device.firmware ?? "–"], ["Video device", ctl.videoNode]].filter(l => l[1] !== "");
     }
-
-    function percent(v) {
-        return v === undefined || v === null ? "" : v + " %";
-    }
-
-    readonly property var infoLines: [["Firmware", ctl.cam.firmware ?? ""], ["Anti-flicker", antiFlicker()], ["Frame rate", ctl.status.frame_rate !== undefined ? ctl.status.frame_rate + " fps" : ""], ["Digital zoom", percent(ctl.status.digital_zoom_percent)], ["Wake-up zoom", percent(ctl.status.wake_up_zoom_percent)]].filter(l => l[1] !== "")
 
     title: "Camera"
     collapsible: true
     expanded: false
-    visible: ctl.cardEnabled("Camera") && (["fov", "led", "mirror", "invert"].some(c => ctl.has(c)))
-    summary: [fovName(), ctl.status.led !== undefined ? "LED " + leds[ctl.status.led] : "", ctl.status.mirror !== undefined ? "mirror " + (ctl.status.mirror ? "on" : "off") : "", ctl.tracking.invert !== undefined ? "invert " + (ctl.tracking.invert ? "on" : "off") : ""].filter(s => s !== "").join(" · ")
+    visible: ctl.cardEnabled("Camera") && ["zoom.field_of_view", "led.brightness", "led.blink", "image.mirror", "gimbal.invert"].some(p => ctl.link.has(p))
+    summary: [shown("zoom.field_of_view"), shown("led.brightness") !== "" ? "LED " + shown("led.brightness") : "", shown("image.mirror") !== "" ? "mirror " + shown("image.mirror").toLowerCase() : "", shown("gimbal.invert") !== "" ? "invert " + shown("gimbal.invert").toLowerCase() : ""].filter(s => s !== "").join(" · ")
     // the camera takes these while asleep too and keeps them when it wakes
     enabled: ctl.available || arranging
     opacity: ctl.available || arranging ? 1 : 0.38
 
-    ChipRow {
-        id: fovRow
+    // "custom" shows after the zoom was set freely; it cannot be picked
+    SettingChips {
         width: parent.width
-        visible: section.ctl.has("fov")
-        // ignored by the camera while it sleeps
-        enabled: section.ctl.live
-        opacity: enabled ? 1 : 0.38
-        label: "Field of view"
-        options: section.fovs
-        currentIndex: section.fovs.findIndex(f => f.toLowerCase() === section.ctl.status.field_of_view)
-        onSelected: index => section.ctl.send(["fov", section.fovs[index].toLowerCase()], "Setting field of view to " + section.fovs[index], { status: { field_of_view: section.fovs[index].toLowerCase() } })
+        link: section.ctl.link
+        path: "zoom.field_of_view"
+        text: "Field of view"
+        labels: section.ctl.labels("zoom.field_of_view")
     }
 
-    ChipRow {
-        id: ledRow
+    SettingSlider {
         width: parent.width
-        visible: section.ctl.has("led")
-        label: "Status LED"
-        options: section.leds
-        currentIndex: section.ctl.status.led ?? -1
-        onSelected: index => section.ctl.send(["led", index], "Setting status LED to " + section.leds[index], { status: { led: index } })
+        link: section.ctl.link
+        path: "led.brightness"
+        text: "Status LED"
     }
 
-    ToggleRow {
+    SettingToggle {
         width: parent.width
-        visible: section.ctl.has("led_blink")
-        label: "Blink status LED"
-        description: "The camera cannot report this; shows the last value set here"
-        checked: section.ctl.ledBlink
-        onToggled: checked => section.ctl.setLedBlink(checked)
+        link: section.ctl.link
+        path: "led.blink"
+        text: "Blink status LED"
     }
 
-    ToggleRow {
+    SettingToggle {
         width: parent.width
-        visible: section.ctl.has("mirror")
-        label: "Mirror image"
-        checked: section.ctl.status.mirror === true
-        onToggled: checked => section.ctl.send(["mirror", checked ? "on" : "off"], checked ? "Mirroring image" : "Unmirroring image", { status: { mirror: checked } })
+        link: section.ctl.link
+        path: "image.mirror"
+        text: "Mirror image"
     }
 
-    ToggleRow {
+    SettingToggle {
         width: parent.width
-        visible: section.ctl.has("invert")
-        label: "Invert gimbal"
-        description: "Reverses left/right panning"
-        checked: section.ctl.tracking.invert === true
-        onToggled: checked => section.ctl.send(["invert", checked ? "on" : "off"], checked ? "Inverting gimbal" : "Restoring gimbal direction", { tracking: { invert: checked } })
+        link: section.ctl.link
+        path: "gimbal.invert"
+        text: "Invert gimbal"
+        hint: "Reverses left/right panning"
     }
 
     StyledText {
@@ -98,14 +78,5 @@ SectionCard {
         text: section.infoLines.map(l => l[0] + ": " + l[1]).join(" · ")
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
-    }
-
-    // A click assigns currentIndex and breaks the binding; re-sync to the camera state
-    Connections {
-        target: section.ctl
-        function onStateRefreshed() {
-            fovRow.sync();
-            ledRow.sync();
-        }
     }
 }
