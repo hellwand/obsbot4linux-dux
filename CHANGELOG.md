@@ -33,6 +33,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   daemon. Values the widget sends show at once and stay until the daemon answers; there is no 3 s
   hold any more (#89). The pill says "Unsupported" for a camera obsbot4linux does not support, and
   "Pick camera" while a usable camera is listed and none is picked (#166).
+- Tracking card: every control follows the camera's description, so a camera with other tracking
+  modes shows its own; the hand area sliders send one end at a time; "Hand moves the gimbal" shows
+  "not known" until it is set, as obsbot4linux cannot read it (#169).
 
 ## [0.29.2] - 2026-11-13
 

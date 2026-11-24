@@ -1,8 +1,10 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "lib/format.mjs" as Format
 
-// AI tracking mode, speed and the hand that hand tracking follows
+// Tracking mode, speed and the hand that hand tracking follows, every control on a path or
+// action of the selected camera's description
 SectionCard {
     id: section
 
@@ -10,19 +12,18 @@ SectionCard {
     // compact: for the Control Center tile; the tracked hand stays in the popout and the detail page
     property bool compact: false
 
-    readonly property var sides: ["Left", "Right"]
-    readonly property var hand: ctl.cam.hand ?? null
-    // {pan, tilt, zoom?} the camera returns to after the hand left, null while none is set
-    readonly property var handReturn: hand?.return ?? null
-    readonly property var handArea: hand?.area ?? null
-    readonly property bool handReturnShown: ctl.has("hand_return") && !compact && ctl.status.ai_mode === "hand"
-
-    function deg(v) {
-        return String(Math.round(v)).replace("-", "−") + "°";
+    readonly property string returnText: {
+        const link = ctl.link;
+        if (!link.has("hand.return"))
+            return "";
+        const pose = link.value("hand.return");
+        return "Return position: " + (pose ? Format.value(link.setting("hand.return"), pose, ctl.labels("hand.return")) : "none");
     }
-
-    function modeIndex() {
-        return ctl.trackingModes.findIndex(m => m.label === ctl.aiMode);
+    readonly property string areaText: {
+        const link = ctl.link;
+        if (!link.has("hand.area.pan") || !link.has("hand.area.tilt"))
+            return "";
+        return "Hand area: pan " + Format.value(link.setting("hand.area.pan"), link.value("hand.area.pan"), ctl.labels("hand.area.pan")) + " · tilt " + Format.value(link.setting("hand.area.tilt"), link.value("hand.area.tilt"), ctl.labels("hand.area.tilt"));
     }
 
     title: "Tracking"
@@ -30,110 +31,95 @@ SectionCard {
     enabled: ctl.available || arranging
     opacity: ctl.available || arranging ? 1 : 0.38
 
-    DFilterChips {
-        id: modeChips
-        // the selected chip is marked by its colour only; a check mark would widen it
-        showCheck: false
+    SettingChips {
         width: parent.width
-        model: section.ctl.trackingModes.map(m => m.label)
-        currentIndex: section.modeIndex()
-        onSelectionChanged: index => section.ctl.setMode(index)
+        stacked: true
+        link: section.ctl.link
+        path: "tracking.mode"
+        text: ""
+        labels: section.ctl.labels("tracking.mode")
     }
 
-    ChipRow {
-        id: speedRow
+    SettingChips {
         width: parent.width
-        label: "Speed"
-        options: section.ctl.speedOptions.map(m => m.label)
-        currentIndex: section.ctl.speedOptions.findIndex(s => s.label === section.ctl.speed)
-        onSelected: index => section.ctl.setSpeed(index)
+        link: section.ctl.link
+        path: "tracking.profile"
+        text: "Speed"
+        labels: section.ctl.labels("tracking.profile")
     }
 
-    // Greyed out but readable outside hand tracking, so the side that would be tracked shows
-    ChipRow {
-        id: sideRow
+    // Gated by the description and blocked() only; the hint says when the camera uses it
+    SettingChips {
         width: parent.width
-        visible: section.ctl.has("hand") && !section.compact
-        enabled: section.ctl.status.ai_mode === "hand"
-        opacity: enabled ? 1 : 0.38
-        label: "Tracked hand"
-        options: section.sides
-        currentIndex: section.sides.findIndex(s => s.toLowerCase() === section.ctl.tracking.hand_side)
-        onSelected: index => section.ctl.send(["hand", section.sides[index].toLowerCase()], "Tracking the " + section.sides[index].toLowerCase() + " hand", { tracking: { hand_side: section.sides[index].toLowerCase() } })
+        visible: section.ctl.link.has("hand.side") && !section.compact
+        link: section.ctl.link
+        path: "hand.side"
+        text: "Tracked hand"
+        labels: section.ctl.labels("hand.side")
     }
 
-    // Only while hand tracking is selected. Needs the capability hand_return (obsbot4linux 0.6.0).
     Flow {
         width: parent.width
-        visible: section.handReturnShown
+        visible: !section.compact && (section.ctl.link.has("hand.return_here") || section.ctl.link.has("hand.go_return") || section.ctl.link.has("hand.return_clear"))
         spacing: Theme.spacingS
 
         DButton {
+            visible: !section.compact && section.ctl.link.has("hand.return_here")
             text: "Return here"
             iconName: "my_location"
-            enabled: section.ctl.live
-            onClicked: section.ctl.send(["hand", "return-here"], "Setting the hand return position")
+            enabled: section.ctl.link.blocked("hand.return_here") === null
+            onClicked: section.ctl.link.act("hand.return_here", {})
         }
 
         DButton {
+            visible: !section.compact && section.ctl.link.has("hand.go_return")
             text: "Go to return position"
             iconName: "u_turn_left"
-            enabled: section.handReturn !== null
-            onClicked: section.ctl.send(["hand", "return-go"], "Moving to the hand return position")
+            enabled: section.ctl.link.blocked("hand.go_return") === null
+            onClicked: section.ctl.link.act("hand.go_return", {})
         }
 
         DButton {
+            visible: !section.compact && section.ctl.link.has("hand.return_clear")
             text: "Clear"
             iconName: "close"
-            enabled: section.handReturn !== null
-            onClicked: section.ctl.send(["hand", "return-reset"], "Clearing the hand return position", { hand: { return: null } })
+            enabled: section.ctl.link.blocked("hand.return_clear") === null
+            onClicked: section.ctl.link.act("hand.return_clear", {})
         }
     }
 
     StyledText {
         width: parent.width
-        visible: section.handReturnShown
+        visible: !section.compact && text !== ""
         wrapMode: Text.WordWrap
-        text: (section.handReturn ? "Return position: pan " + section.deg(section.handReturn.pan) + " · tilt " + section.deg(section.handReturn.tilt) + (section.handReturn.zoom !== undefined ? " · zoom " + Number(section.handReturn.zoom).toFixed(1) + "×" : "") : "Return position: none")
-            + (section.handArea ? "\nHand area: pan " + section.deg(section.handArea.pan_min) + "…" + section.deg(section.handArea.pan_max) + " · tilt " + section.deg(section.handArea.tilt_min) + "…" + section.deg(section.handArea.tilt_max) : "")
+        text: section.returnText + (section.returnText !== "" && section.areaText !== "" ? "\n" : "") + section.areaText
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
     }
 
-    // Only while hand tracking is selected; each part checks its own capability
+    // Only while hand tracking is selected; each control checks its own path
     HandControls {
         width: parent.width
-        visible: !section.compact && section.ctl.status.ai_mode === "hand" && (section.ctl.has("hand_area") || section.ctl.has("hand_axes") || section.ctl.has("hand_return_after") || section.ctl.has("hand_gimbal"))
+        visible: !section.compact && section.ctl.link.value("tracking.mode") === "hand" && section.ctl.link.has("hand")
         ctl: section.ctl
     }
 
-    // Measured with zone tracking on (Tiny 2 Lite): when the target left the area the camera kept
-    // tracking and took a new one. Before obsbot4linux 0.7.3 its pose polling made it go Static
-    // instead (nofuturekid/obsbot4linux#67). Not in the compact tile.
-    ToggleRow {
+    // When the target left the area the camera keeps tracking and takes a new one. Not in the
+    // compact tile.
+    SettingToggle {
         width: parent.width
-        visible: section.ctl.has("zone_follow") && !section.compact
-        label: "Follow new targets"
-        checked: section.ctl.cam.state?.zone_follow === true
-        onToggled: checked => section.ctl.send(["zone", "follow", checked ? "on" : "off"], checked ? "Following new targets" : "Not following new targets", { state: { zone_follow: checked } })
+        visible: section.ctl.link.has("zone.follow") && !section.compact
+        link: section.ctl.link
+        path: "zone.follow"
+        text: "Follow new targets"
     }
 
     // Experimental: the tracked target's box over the preview
     ToggleRow {
         width: parent.width
-        visible: section.ctl.has("target") && !section.compact
+        visible: section.ctl.link.has("tracking.target.box") && !section.compact
         label: "Show target box in preview"
         checked: section.ctl.showTargetBox
         onToggled: checked => section.ctl.setShowTargetBox(checked)
-    }
-
-    // A click assigns currentIndex and breaks the binding; re-sync to the camera state
-    Connections {
-        target: section.ctl
-        function onStateRefreshed() {
-            modeChips.currentIndex = section.modeIndex();
-            speedRow.sync();
-            sideRow.sync();
-        }
     }
 }
