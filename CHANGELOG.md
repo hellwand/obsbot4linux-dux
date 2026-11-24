@@ -25,6 +25,7 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   pending value as "pending" (#162).
 - CI tests the widget's link against the obsbot4linux daemon in fake mode (two fake cameras of
   different shape and one unsupported device), built from obsbot4linux's 1.0 branch (#163).
+- A camera picker in the popout header when obsbot4linux lists more than one camera, with the marks "untested" and "unsupported"; for an unsupported camera the widget shows no controls and says how to report it (`obsbot4linux devices --report`). Without a running daemon the header shows the command that starts it (#168).
 
 ### Changed
 
