@@ -14,6 +14,10 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   `scripts/check-js.sh` and by CI; the QML check also compiles and lints the modules (#154).
 - Protocol 2 of obsbot4linux 1.0 for the widget: its request lines, the parsing of the daemon's lines
   and the connection with its reconnect backoff, as tested modules (#156).
+- The rules the 1.0 widget follows, as tested modules: which controls a device's description
+  offers and with which values and bounds, what a control shows (its own value until the reply,
+  then the camera's value or its pending one), the device list and the device shown, presets and
+  views, and the gimbal arrows (#157).
 
 ## [0.29.2] - 2026-11-13
 
