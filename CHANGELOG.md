@@ -39,6 +39,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Framing card: the gimbal arrows send only the move; they no longer switch the tracking to Static
   first (use the tracking mode for that). The zoom slider and the zone area take their bounds from
   the camera's description (#170).
+- Presets card: as many slots as the camera has; "Save current pose" sends no name, and a preset
+  without a name shows "(unnamed)" here only. The list comes with the camera's state, so "Reading
+  presets…" and its time-out are gone (#171).
 
 ## [0.29.2] - 2026-11-13
 

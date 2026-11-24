@@ -1,37 +1,27 @@
 import QtQuick
 import qs.Common
 import qs.DCommon.Widgets
+import "lib/lists.mjs" as Lists
 
-// The camera's three preset slots: recall, save the current pose, rename, delete. The list comes
-// from `obsbot4linux preset list` (not part of the state events), read when the card shows up,
-// when it opens and after every change.
+// The camera's preset slots: recall, save the current pose, rename, delete. The slots come from
+// the description and the list from the camera's state. Saving sends no name; a preset without a
+// name shows "(unnamed)" here only.
 SectionCard {
     id: section
 
     property var ctl
 
-    readonly property var slots: [0, 1, 2]
+    readonly property var rows: Lists.presetRows(ctl.link.device, ctl.link.camState)
     // Slot being renamed / asked to delete, -1 = none; only one row at a time
     property int renaming: -1
     property int deleting: -1
-    readonly property bool zoneReturnArmed: ctl.tracking.zone_tracking === true && ctl.cam.state?.zone_follow === true
-    readonly property bool wanted: visible && ctl.available
+    readonly property bool zoneReturnArmed: ctl.link.value("zone.enabled") === true && ctl.link.value("zone.follow") === true
 
-    function presetAt(slot) {
-        return (ctl.presets ?? []).find(p => p.slot === slot) ?? null;
-    }
     function num(v) {
         return String(Math.round(v)).replace("-", "−");
     }
-    function poseText(p) {
-        return "pan " + num(p.pose.pan) + "° · tilt " + num(p.pose.tilt) + "° · zoom " + Number(p.pose.zoom).toFixed(2) + "×";
-    }
-    // No list: nothing to say without a camera; with preset_state the list is part of every state,
-    // so null there means the camera did not answer
-    function missingText() {
-        if (!ctl.available)
-            return "";
-        return ctl.presetsFailed || ctl.has("preset_state") ? "Could not read the presets" : "Reading presets...";
+    function poseText(pose) {
+        return pose ? "pan " + num(pose.pan) + "° · tilt " + num(pose.tilt) + "° · zoom " + Number(pose.zoom).toFixed(2) + "×" : "";
     }
     function reset() {
         renaming = -1;
@@ -41,41 +31,39 @@ SectionCard {
     title: "Presets"
     collapsible: true
     expanded: false
-    visible: ctl.cardEnabled("Presets") && ctl.has("preset")
-    summary: ctl.presets === null ? "" : ctl.presets.length + " of 3 saved"
+    visible: ctl.cardEnabled("Presets") && ctl.link.has("presets")
+    summary: rows === null ? "" : rows.filter(r => r.used).length + " of " + rows.length + " saved"
     enabled: ctl.available || arranging
     opacity: ctl.available || arranging ? 1 : 0.38
-    onWantedChanged: {
-        if (wanted)
-            ctl.refreshPresets();
-    }
-    onExpandedChanged: {
-        reset();
-        if (expanded && wanted)
-            ctl.refreshPresets();
-    }
-    Component.onCompleted: {
-        if (wanted)
-            ctl.refreshPresets();
+    onExpandedChanged: reset()
+
+    StyledText {
+        width: parent.width
+        visible: section.rows === null
+        text: "Presets not read yet"
+        color: Theme.surfaceVariantText
+        font.pixelSize: Theme.fontSizeSmall
     }
 
     Repeater {
-        model: section.slots
+        model: section.rows ?? []
 
         delegate: Column {
             id: row
 
-            required property int modelData
-            readonly property var preset: section.presetAt(modelData)
-            readonly property bool confirmingDelete: section.deleting === modelData
-            readonly property bool editing: section.renaming === modelData
+            required property var modelData
+            readonly property bool confirmingDelete: section.deleting === modelData.slot
+            readonly property bool editing: section.renaming === modelData.slot
+            readonly property var nameProblem: Lists.nameProblem(section.ctl.link.device, "preset.rename", "name", nameField.text)
 
             function rename() {
-                const name = nameField.text.trim();
-                if (name === "")
+                if (nameProblem !== null)
                     return;
                 section.renaming = -1;
-                section.ctl.presetCommand(["preset", "rename", row.modelData, "--", name], "Renaming preset " + (row.modelData + 1));
+                section.ctl.link.act("preset.rename", {
+                    slot: modelData.slot,
+                    name: nameField.text
+                });
             }
 
             width: section.width - section.padding * 2
@@ -84,7 +72,7 @@ SectionCard {
             StyledText {
                 width: parent.width
                 elide: Text.ElideRight
-                text: "Slot " + (row.modelData + 1) + (row.preset ? ": " + row.preset.name : "")
+                text: "Slot " + (row.modelData.slot + 1) + (row.modelData.used ? ": " + row.modelData.label : "")
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
             }
@@ -93,7 +81,7 @@ SectionCard {
                 width: parent.width
                 wrapMode: Text.WordWrap
                 visible: !row.confirmingDelete
-                text: row.preset ? section.poseText(row.preset) : (section.ctl.presets === null ? section.missingText() : "Empty")
+                text: row.modelData.used ? section.poseText(row.modelData.pose) : "Empty"
                 color: Theme.surfaceVariantText
                 font.pixelSize: Theme.fontSizeSmall
                 font.features: { "tnum": 1 }
@@ -112,11 +100,7 @@ SectionCard {
                 id: nameField
                 width: parent.width
                 visible: row.editing
-                maximumLength: 32
                 placeholderText: "Name"
-                validator: RegularExpressionValidator {
-                    regularExpression: /[\x20-\x7e]*/
-                }
                 onAccepted: row.rename()
             }
 
@@ -125,44 +109,46 @@ SectionCard {
                 spacing: Theme.spacingS
 
                 DButton {
-                    visible: !row.confirmingDelete && !row.editing
+                    visible: !row.confirmingDelete && !row.editing && section.ctl.link.has("preset.recall")
                     text: "Recall"
                     iconName: "my_location"
-                    enabled: row.preset !== null && section.ctl.live
-                    onClicked: section.ctl.presetCommand(["preset", "recall", row.modelData], "Moving to preset " + (row.modelData + 1))
+                    enabled: row.modelData.used && section.ctl.link.blocked("preset.recall") === null
+                    onClicked: section.ctl.link.act("preset.recall", {
+                        slot: row.modelData.slot
+                    })
                 }
 
                 DButton {
-                    visible: !row.confirmingDelete && !row.editing
+                    visible: !row.confirmingDelete && !row.editing && section.ctl.link.has("preset.save")
                     text: "Save current pose"
                     iconName: "save"
-                    enabled: section.ctl.live
-                    onClicked: section.ctl.presetCommand(["preset", "save", row.modelData], "Saving preset " + (row.modelData + 1))
+                    enabled: section.ctl.link.blocked("preset.save") === null
+                    onClicked: section.ctl.link.act("preset.save", Lists.saveParams(row.modelData.slot, ""))
                 }
 
                 DButton {
-                    visible: !row.confirmingDelete && !row.editing
+                    visible: !row.confirmingDelete && !row.editing && section.ctl.link.has("preset.rename")
                     text: "Rename"
                     iconName: "edit"
-                    enabled: row.preset !== null
+                    enabled: row.modelData.used && section.ctl.link.blocked("preset.rename") === null
                     onClicked: {
                         section.reset();
-                        nameField.text = row.preset?.name ?? "";
-                        section.renaming = row.modelData;
+                        nameField.text = row.modelData.name;
+                        section.renaming = row.modelData.slot;
                         nameField.forceActiveFocus();
                     }
                 }
 
                 DButton {
-                    visible: !row.confirmingDelete && !row.editing
+                    visible: !row.confirmingDelete && !row.editing && section.ctl.link.has("preset.delete")
                     text: "Delete"
                     iconName: "delete"
-                    enabled: row.preset !== null
+                    enabled: row.modelData.used && section.ctl.link.blocked("preset.delete") === null
                     backgroundColor: Theme.errorContainer
                     textColor: Theme.onErrorContainer
                     onClicked: {
                         section.reset();
-                        section.deleting = row.modelData;
+                        section.deleting = row.modelData.slot;
                         cancelTimer.restart();
                     }
                 }
@@ -177,7 +163,8 @@ SectionCard {
                     visible: row.editing
                     text: "Rename"
                     iconName: "check"
-                    enabled: nameField.text.trim() !== ""
+                    enabled: row.nameProblem === null
+                    tooltipText: row.nameProblem ?? ""
                     onClicked: row.rename()
                 }
 
@@ -195,7 +182,9 @@ SectionCard {
                     textColor: Theme.onError
                     onClicked: {
                         section.deleting = -1;
-                        section.ctl.presetCommand(["preset", "delete", row.modelData], "Deleting preset " + (row.modelData + 1));
+                        section.ctl.link.act("preset.delete", {
+                            slot: row.modelData.slot
+                        });
                     }
                 }
             }
@@ -224,12 +213,5 @@ SectionCard {
         id: cancelTimer
         interval: 10000
         onTriggered: section.deleting = -1
-    }
-
-    DButton {
-        visible: section.ctl.presetsFailed
-        text: "Retry reading presets"
-        iconName: "refresh"
-        onClicked: section.ctl.refreshPresets()
     }
 }
