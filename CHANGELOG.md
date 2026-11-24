@@ -12,7 +12,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 - Tests for the widget's JavaScript modules (`lib/*.mjs`), run in node and in the QML engine by
   `scripts/check-js.sh` and by CI; the QML check also compiles and lints the modules (#154).
-- Protocol 2 of obsbot4linux 1.0 for the widget: its request lines, the parsing of the daemon's lines and the connection with its reconnect backoff, as tested modules (#156).
+- Protocol 2 of obsbot4linux 1.0 for the widget: its request lines, the parsing of the daemon's lines
+  and the connection with its reconnect backoff, as tested modules (#156).
 
 ## [0.29.2] - 2026-11-13
 
