@@ -46,7 +46,7 @@ Item {
         // (also not while the text is empty). The hidden texts share the visible one's font.
         Item {
             visible: pill.slotShown
-            width: Math.ceil(Math.max(m1.implicitWidth, m2.implicitWidth, m3.implicitWidth, m4.implicitWidth))
+            width: Math.ceil(Math.max(m1.implicitWidth, m2.implicitWidth, m3.implicitWidth, m4.implicitWidth, m5.implicitWidth, m6.implicitWidth))
             height: label.implicitHeight
             anchors.verticalCenter: parent.verticalCenter
 
@@ -75,6 +75,20 @@ Item {
                 id: m4
                 visible: false
                 text: "Offline"
+                font.pixelSize: pill.ctl.textSize
+            }
+
+            StyledText {
+                id: m5
+                visible: false
+                text: "Unsupported"
+                font.pixelSize: pill.ctl.textSize
+            }
+
+            StyledText {
+                id: m6
+                visible: false
+                text: "Pick camera"
                 font.pixelSize: pill.ctl.textSize
             }
 

@@ -26,6 +26,13 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - CI tests the widget's link against the obsbot4linux daemon in fake mode (two fake cameras of
   different shape and one unsupported device), built from obsbot4linux's 1.0 branch (#163).
 
+### Changed
+
+- The bar pill, the Control Center tile and the popout read the camera from obsbot4linux 1.0's
+  daemon. Values the widget sends show at once and stay until the daemon answers; there is no 3 s
+  hold any more (#89). The pill says "Unsupported" for a camera obsbot4linux does not support, and
+  "Pick camera" while a usable camera is listed and none is picked (#166).
+
 ## [0.29.2] - 2026-11-13
 
 ### Added

@@ -7,43 +7,12 @@ import qs.DCommon.Widgets
 import qs.Modules.ControlCenter.Widgets
 import qs.Modules.Plugins
 import qs.Services
+import "lib/labels.mjs" as Labels
+import "lib/describe.mjs" as Describe
 
 PluginComponent {
     id: root
 
-    // One long-running `obsbot4linux watch` is the only link to the camera: its state events are the
-    // only source of truth, commands are requests on its stdin. The UI patches `cam`
-    // optimistically when a command goes out; the patch stays until an event shows its value or
-    // patchTimeout has passed (#89, see OptimisticState).
-
-    // key = ai_mode in obsbot4linux's state, arg = `obsbot4linux tracking <arg>`
-    // main/sub: the mode/sub-mode pair obsbot4linux reads back as status.default_work_mode
-    // (main << 4 | sub in the camera; obsbot4linux src/commands.rs AiMode::to_bytes)
-    readonly property var trackingModes: [
-        { label: "Static", arg: "static", key: "static", main: 0, sub: 0 },
-        { label: "Normal Tracking", arg: "normal", key: "normal", main: 2, sub: 0 },
-        { label: "Upper Body", arg: "upper-body", key: "upper_body", main: 2, sub: 1 },
-        { label: "Close-up", arg: "close-up", key: "close_up", main: 2, sub: 2 },
-        { label: "Headless", arg: "headless", key: "headless", main: 2, sub: 3 },
-        { label: "Lower Body", arg: "lower-body", key: "lower_body", main: 2, sub: 4 },
-        { label: "Hand", arg: "hand", key: "hand", main: 3, sub: 0 },
-        { label: "Group", arg: "group", key: "group", main: 1, sub: 0 }
-    ]
-    readonly property var speeds: [
-        { label: "Standard", arg: "standard" },
-        { label: "Headroom", arg: "headroom", needs: "speed_headroom" },
-        { label: "Sport", arg: "sport" }
-    ]
-    // Headroom (more room above the head) needs obsbot4linux 0.11
-    readonly property var speedOptions: speeds.filter(s => !s.needs || has(s.needs))
-
-    readonly property var exposureModes: [
-        { label: "Global", arg: "global" },
-        { label: "Face", arg: "face" },
-        { label: "Custom", arg: "manual" }
-    ]
-    // Manual exposure (UVC auto_exposure 1): exposure_time and gain then set the brightness
-    readonly property bool manualExposure: (image.auto_exposure?.value ?? 0) === 1
     // Settings page: the pill's mouse wheel zooms, its middle click toggles tracking
     readonly property bool wheelZoom: pluginData?.wheelZoom ?? true
     readonly property bool middleClickTracking: pluginData?.middleClickTracking ?? true
@@ -61,67 +30,12 @@ PluginComponent {
     function cardEnabled(card) {
         return pluginData?.["card" + card] ?? true;
     }
-    // Last tracking mode other than Static (ai_mode key), what the middle click goes back to
+    // Last tracking mode other than Static (a tracking.mode value), what the middle click goes back to
     readonly property string lastTrackingMode: pluginData?.lastTrackingMode ?? "normal"
-
-    // UVC controls shown as sliders; range and default come from obsbot4linux's image.<name>
-    readonly property var imageControls: [
-        { name: "brightness", label: "Brightness" },
-        { name: "contrast", label: "Contrast" },
-        { name: "saturation", label: "Saturation" },
-        { name: "sharpness", label: "Sharpness" },
-        { name: "backlight_compensation", label: "Backlight compensation" }
-    ]
-
-    // The state object of the last event, with optimistic patches on top (OptimisticState)
-    property alias cam: optimistic.cam
-    readonly property var status: cam.status ?? ({})
-    readonly property var tracking: cam.tracking ?? ({})
-    readonly property var image: cam.image ?? ({})
-    readonly property real zoomFactor: cam.zoom?.factor ?? 1
-    // Gimbal pose in degrees; positive pan = camera left, positive tilt = up
-    // live pose (follows AI tracking), else the last pose obsbot4linux set
-    readonly property real pan: cam.pose?.pan ?? cam.state?.gimbal?.pan ?? 0
-    readonly property real tilt: cam.pose?.tilt ?? cam.state?.gimbal?.tilt ?? 0
-    // What gimbal, poses and zone area accept ({pan, tilt, zoom}: [min, max]), from obsbot4linux
-    readonly property var limits: cam.limits ?? null
-    // [min, max] zoom factor; [1, 1] until obsbot4linux reported its limits
-    readonly property var zoomRange: limits?.zoom ?? [1, 1]
-    readonly property bool imageAtDefaults: imageControls.every(c => (image[c.name]?.value ?? 0) === (image[c.name]?.default ?? 0))
-
-    // Camera model and V4L2 by-id path, both null in the state while no supported camera is there
-    readonly property string model: cam.model ?? ""
-    readonly property string device: cam.device ?? ""
-    // /dev/videoN behind `device`, what Qt Multimedia calls the camera's id
-    readonly property string videoNode: watch.videoNode
-    readonly property bool previewReady: device !== "" && videoNode !== ""
-
-    readonly property bool toolMissing: watch.toolMissing
-    readonly property bool available: cam.available === true
-    readonly property bool awake: available && status.asleep === false
-    readonly property string aiMode: trackingModes.find(m => m.key === status.ai_mode)?.label ?? ""
-    readonly property string speed: speeds.find(s => s.arg === status.tracking_speed)?.label ?? ""
-
-    // Bar pill text: tracking state while awake, "Asleep", "Offline" without a camera
-    readonly property string pillText: !available ? "Offline" : !awake ? "Asleep" : status.ai_mode === "static" ? "Static" : "Tracking"
-
-    function has(name) {
-        return (cam.capabilities ?? []).indexOf(name) >= 0;
-    }
-
-    // Arrow direction follows the picture: with mirror on, the picture's left is the camera's right.
-    // "Invert view and gimbal" needs no extra flip: it leaves the commanded and the reported pan
-    // alone (measured on a Tiny 2 Lite, gimbal --pan 20 reads pose.pan 20 with invert on and off)
-    readonly property int panLeftSign: status.mirror === true ? -1 : 1
 
     // Fine steps: 1° per arrow click instead of 5°
     property bool fineGimbal: false
     readonly property int gimbalStep: fineGimbal ? 1 : 5
-
-    // Label of the command in flight, shown in the header until obsbot4linux answers
-    property string pendingLabel: ""
-    property int pendingId: 0
-    property int requestId: 0
 
     // Live preview; holds the camera, so no other app can open it meanwhile
     property bool previewOn: false
@@ -132,19 +46,16 @@ PluginComponent {
         holding: root.previewOn
         onDisplaced: root.previewOn = false
     }
-    readonly property bool live: available && awake
-    // Off when the camera goes away (unplugged, watch lost) or falls asleep while the preview was
-    // running, here or from another surface, like the desktop widget. A preview started while the
-    // camera sleeps stays on: opening the stream wakes the camera (#93). Only the camera's own
-    // report counts as awake here, not the optimistic value shown meanwhile (#98).
+    // Off when the camera goes away (unplugged, connection lost) or falls asleep while the preview
+    // was running, here or from another surface, like the desktop widget. A preview started while
+    // the camera sleeps stays on: opening the stream wakes the camera (#93). `live` is the state's
+    // own report; there is no optimistic value of it.
     property bool previewWasAwake: false
-    onPreviewOnChanged: previewWasAwake = previewOn && awakeReported
-    onAwakeReportedChanged: {
-        if (awakeReported && previewOn)
+    onPreviewOnChanged: previewWasAwake = previewOn && live
+    onLiveChanged: {
+        if (live && previewOn)
             previewWasAwake = true;
-    }
-    onAwakeChanged: {
-        if (!awake && previewWasAwake)
+        if (!live && previewWasAwake)
             previewOn = false;
     }
     onAvailableChanged: {
@@ -153,23 +64,11 @@ PluginComponent {
         applyVisibility();
     }
 
-    readonly property string statusText: {
-        if (!available)
-            return toolMissing ? "Control tool not found" : "Not reachable";
-        if (pendingLabel !== "")
-            return pendingLabel + "…";
-        // obsbot4linux 0.4.0: target null while static, detected false while the camera searches
-        const searching = cam.target?.detected === false;
-        return awake ? "Awake · " + aiMode + (searching ? " · searching" : "") : "Asleep · lens stowed";
-    }
-    // Any application reading the camera, the widget's own preview included (obsbot4linux 0.3.0)
-    // On air: any app streams (obsbot4linux's kernel probe) or our own preview runs. The preview is
-    // counted here too: Qt reads the frames without mmap, so obsbot4linux can't name it.
-    // A preview of ours also runs on a desktop widget (PreviewClaim shares that between surfaces)
+    // On air (`streaming` below): any app streams (the daemon's kernel probe) or our own preview
+    // runs. The preview is counted here too: Qt reads the frames without mmap, so the daemon can't
+    // name it. A preview of ours also runs on a desktop widget (PreviewClaim shares that between
+    // surfaces)
     readonly property bool previewRunning: previewOn || previewClaim.anyRunning
-    readonly property bool streaming: cam.streaming === true || previewRunning
-    // Names obsbot4linux could see (may be empty, e.g. Chrome's sandbox), plus our preview
-    readonly property var streamingApps: (cam.streaming_apps ?? []).filter(a => a !== "qs").concat(previewRunning ? ["qs"] : [])
     readonly property var appNames: ({
             "qs": "preview",
             "chrome": "Chrome",
@@ -178,10 +77,6 @@ PluginComponent {
             "obs": "OBS"
         })
 
-    readonly property string baseSummary: (model !== "" ? model : "OBSBOT camera") + " · " + statusText
-    // Header and pill tooltip show this line
-    readonly property string summary: baseSummary + (streaming ? " · On air" + (streamingApps.length > 0 ? ": " + streamingApps.map(a => appNames[a] ?? a).join(", ") : "") : "")
-
     // DMS only hides the popout, its content stays alive; switch the preview off on close
     onInteractionActiveChanged: {
         if (!interactionActive) {
@@ -189,22 +84,6 @@ PluginComponent {
             arranging = false;
         }
     }
-
-    // obsbot4linux 0.8.0 polls the live pose only for connections that ask for it. Only the
-    // popout's Framing card shows the pose (the desktop widget never asks). The subscription
-    // belongs to the watch connection: poseSent forgets it when the watch process ends, and the
-    // first state of the new connection asks again.
-    readonly property bool poseWanted: interactionActive && cardEnabled("Framing") && has("live_pose_on_demand")
-    property bool poseSent: false
-    onPoseWantedChanged: syncPose()
-    function syncPose() {
-        if (poseWanted === poseSent || !watch.running)
-            return;
-        send(["live-pose", poseWanted ? "on" : "off"]);
-        poseSent = poseWanted;
-    }
-
-    signal stateRefreshed
 
     // The open card of each tab ("" = all closed); opening one closes the other in the same
     // tab, so the popout stays short
@@ -311,286 +190,17 @@ PluginComponent {
         pluginService?.savePluginData(pluginId, "cardTabs", undefined);
     }
 
-    // Sliders: events that arrive while the user is still dragging would pull the handle
-    // back, so image and zoom of the state stay as dragged until the drag has rested.
-    Timer {
-        id: dragHold
-        interval: 500
-        onTriggered: optimistic.apply()
-    }
-
-    OptimisticState {
-        id: optimistic
-        onRefreshed: root.stateRefreshed()
-        finish: (previous, next) => {
-            if (!dragHold.running)
-                return next;
-            const held = { image: previous.image, zoom: previous.zoom, audio_volume: previous.audio_volume };
-            held.status = Object.assign({}, next.status, { wake_up_zoom_percent: previous.status?.wake_up_zoom_percent });
-            return Object.assign({}, next, held);
-        }
-    }
-
-    // Sends `obsbot4linux <args>` and flips the UI to `changes` at once
-    function send(args, label, changes, slider) {
-        if (!watch.running)
-            return;
-        const id = ++root.requestId;
-        if (changes)
-            optimistic.change(id, changes);
-        if (slider)
-            dragHold.restart();
-        if (label) {
-            root.pendingId = id;
-            root.pendingLabel = label;
-        }
-        watch.write(id, args);
-        root.stateRefreshed();
-    }
-
-    // The answer to a request; the watcher has already logged and shown an error
-    function handleReply(msg) {
-        if (msg.id === root.pendingId)
-            root.pendingLabel = "";
-        // Any outstanding `preset list` counts, not only the newest: a slow answer to an earlier
-        // request must not be dropped just because the card asked again meanwhile
-        if (root.presetListIds[msg.id]) {
-            const rest = Object.assign({}, root.presetListIds);
-            delete rest[msg.id];
-            root.presetListIds = rest;
-            // [{slot, name, pose: {pan, tilt, zoom}}], the slots in use
-            const list = msg.result?.value;
-            // not Array.isArray: the reply went through a signal, which hands arrays over as
-            // list wrappers that fail it (the cause of "Reading presets..." sticking)
-            if (msg.ok !== false && list && typeof list.length === "number") {
-                root.listedPresets = Array.from(list);
-                root.presetsFailed = false;
-                presetTimeout.stop();
-            } else {
-                root.presetsFailed = true;
-            }
-        }
-        if (root.presetOps[msg.id]) {
-            const rest = Object.assign({}, root.presetOps);
-            delete rest[msg.id];
-            root.presetOps = rest;
-            if (msg.ok !== false)
-                root.refreshPresets();
-        }
-        if (msg.ok === false) {
-            // the optimistic change of this request did not happen; the dragged sliders stay
-            optimistic.fail(msg.id);
-        }
-    }
-
-    function onState(next) {
-        // The card asked while the watch was not up yet, or before it restarted: read the list now
-        if (root.listedPresets === null && !root.has("preset_state") && root.presetsRequested && !root.presetsFailed && Object.keys(root.presetListIds).length === 0 && next.available === true && (next.capabilities ?? []).indexOf("preset") >= 0)
-            Qt.callLater(root.refreshPresets);
-        optimistic.receive(next);
-        const mode = next.status?.ai_mode;
-        if (mode && mode !== "static" && mode !== root.lastTrackingMode)
-            root.pluginService?.savePluginData(root.pluginId, "lastTrackingMode", mode);
-        root.syncPose();
-    }
-
-    // The camera's own state says awake (without the optimistic patches)
-    readonly property bool awakeReported: optimistic.truth.available === true && optimistic.truth.status?.asleep === false
-
-    function setAwake(on) {
-        if (!on)
-            root.previewOn = false;
-        root.send([on ? "wake" : "sleep"], on ? "Waking camera" : "Stowing lens", { status: { asleep: !on } });
-    }
-
-    // The preview wakes a sleeping camera by opening the stream: show it awake at once
-    function assumeAwake() {
-        optimistic.change(++root.requestId, { status: { asleep: false } });
-    }
-
-    function toggleAwake() {
-        if (root.available)
-            root.setAwake(!root.awake);
-    }
-
-    // Middle click: Static <-> the last other mode
-    function toggleTracking() {
-        if (!root.available)
-            return;
-        const target = status.ai_mode === "static" ? root.lastTrackingMode : "static";
-        const index = root.trackingModes.findIndex(m => m.key === target);
-        root.setMode(index < 0 ? 1 : index);
-    }
-
-    function setMode(index) {
-        const mode = root.trackingModes[index];
-        root.send(["tracking", mode.arg], "Switching to " + mode.label, { status: { ai_mode: mode.key } });
-    }
-
-    function setSpeed(index) {
-        const speed = root.speedOptions[index];
-        root.send(["speed", speed.arg], "Setting speed to " + speed.label, { status: { tracking_speed: speed.arg } });
-    }
-
-    function setHdr(on) {
-        root.send(["hdr", on ? "on" : "off"], on ? "Turning HDR on" : "Turning HDR off", { status: { hdr: on } });
-    }
-
-    // The camera restarts and drops off USB for ~20 s; obsbot4linux reports it unavailable meanwhile
-    function factoryReset() {
-        root.previewOn = false;
-        root.send(["factory-reset", "--yes"], "Resetting to factory settings");
-    }
-
-    // Presets stored in the camera. Before obsbot4linux 0.13 they are not part of the state events:
-    // the Presets card then asks for the list when it needs it and after each change, and
-    // `listedPresets` is null until `preset list` has answered.
-    property var listedPresets: null
-    // With obsbot4linux 0.13 (capability preset_state) the list is part of the state events and is
-    // re-sent after every change (null: no answer); older versions are asked with `preset list`.
-    // Arrays from the state may come as list wrappers, hence length and Array.from.
-    readonly property var presets: {
-        if (!has("preset_state"))
-            return listedPresets;
-        const list = cam.presets;
-        return list && typeof list.length === "number" ? Array.from(list) : null;
-    }
-    // Ids of the `preset list` requests not answered yet
-    property var presetListIds: ({})
-    // The card asked at least once; the list is then read again after a watch restart
-    property bool presetsRequested: false
-    // No usable answer (error, or none within the timeout): the card shows it with a retry
-    property bool presetsFailed: false
-    // Ids of the preset commands in flight; the list is read again when one succeeded
-    property var presetOps: ({})
-
-    function refreshPresets() {
-        if (root.has("preset_state"))
-            return;
-        root.presetsRequested = true;
-        root.presetsFailed = false;
-        if (!watch.running)
-            return;
-        const id = ++root.requestId;
-        root.presetListIds = Object.assign({}, root.presetListIds, { [id]: true });
-        watch.write(id, ["preset", "list"]);
-        presetTimeout.restart();
-    }
-
-    // "Reading presets..." must not stay forever (request lost, camera not answering)
-    Timer {
-        id: presetTimeout
-        interval: 8000
-        onTriggered: {
-            if (root.listedPresets === null)
-                root.presetsFailed = true;
-        }
-    }
-
-    function presetCommand(args, label) {
-        const id = root.requestId + 1;
-        root.presetOps = Object.assign({}, root.presetOps, { [id]: true });
-        root.send(args, label);
-    }
-
-    function setExposure(index) {
-        const mode = root.exposureModes[index];
-        const changes = mode.arg === "manual" ? { image: { auto_exposure: 1 } } : { status: { face_auto_exposure: mode.arg === "face" }, image: { auto_exposure: 0 } };
-        root.send(["exposure", mode.arg], "Setting exposure to " + mode.label, changes);
-    }
-
-    function setControl(name, value) {
-        root.send(["image", name, value], "", { image: { [name]: value } }, true);
-    }
-
-    function setVolume(value) {
-        root.send(["audio", "volume", value], "", { audio_volume: value }, true);
-    }
-
-    // obsbot4linux cannot read the LED blink back: the last value set here is remembered
-    readonly property bool ledBlink: pluginData?.ledBlink ?? false
-    function setLedBlink(on) {
-        pluginService?.savePluginData(pluginId, "ledBlink", on);
-        root.send(["led", "blink", on ? "on" : "off"], on ? "Letting the status LED blink" : "Letting the status LED burn steadily");
-    }
-
-    // obsbot4linux cannot read the hand gimbal switch back (the camera does not keep it): the last
-    // value set here is remembered; the camera's own default is on
-    readonly property bool handGimbal: pluginData?.handGimbal ?? true
-    function setHandGimbal(on) {
-        pluginService?.savePluginData(pluginId, "handGimbal", on);
-        root.send(["hand", "gimbal", on ? "on" : "off"], on ? "Letting the hand tracker move the gimbal" : "Stopping the hand tracker's gimbal");
-    }
-
-    // Index in trackingModes of the start mode the camera reports, -1 when unknown
-    function wakeModeIndex() {
-        const m = status.default_work_mode;
-        return m ? trackingModes.findIndex(t => t.main === m.main && t.sub === m.sub) : -1;
-    }
-
-    function setWakeMode(index) {
-        const mode = root.trackingModes[index];
-        root.send(["wake", "mode", mode.arg], "Setting start mode to " + mode.label, { status: { default_work_mode: { main: mode.main, sub: mode.sub } } });
-    }
-
-    function setZoom(factor) {
-        root.send(["zoom", factor.toFixed(2)], "", { zoom: { factor: factor } }, true);
-    }
-
-    // Mouse wheel: 0.1 per notch within the range `obsbot4linux zoom` accepts
-    function stepZoom(notches) {
-        const next = Math.max(root.zoomRange[0], Math.min(root.zoomRange[1], Math.round((root.zoomFactor + notches * 0.1) * 100) / 100));
-        if (next !== root.zoomFactor)
-            root.setZoom(next);
-    }
-
-    // `obsbot4linux gimbal` takes an absolute pose in degrees and switches to Static itself.
-    // The ranges come from obsbot4linux's `limits`; without them it rejects what is out of range.
-    // Target of the last own gimbal move. Arrow steps build on it while the gimbal is still on its
-    // way: the live pose then reads a point in between, and quick presses would fall short.
-    property var moveTarget: null
-    property double moveTargetAt: 0
-    function stepBase() {
-        if (moveTarget && Date.now() - moveTargetAt < 2000)
-            return moveTarget;
-        return { pan: root.pan, tilt: root.tilt };
-    }
-
-    function moveGimbal(newPan, newTilt) {
-        const clamp = (v, range) => range ? Math.max(range[0], Math.min(range[1], v)) : v;
-        const p = clamp(newPan, root.limits?.pan);
-        const t = clamp(newTilt, root.limits?.tilt);
-        root.moveTarget = { pan: p, tilt: t };
-        root.moveTargetAt = Date.now();
-        root.send(["gimbal", "--pan", p, "--tilt", t], "", { state: { gimbal: { pan: p, tilt: t } }, pose: { pan: p, tilt: t }, status: { ai_mode: "static" } });
-    }
-
     function degrees(d) {
         const r = Math.round(d);
         return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r) + "°";
     }
 
-    // Auto-sleep times offered, the choices of OBSBOT Center
-    readonly property var autoSleepTimes: [
-        { label: "Off", arg: "off" },
-        { label: "30 s", arg: "30" },
-        { label: "2 min", arg: "120" },
-        { label: "10 min", arg: "600" }
-    ]
-    function autoSleepIndex() {
-        if (status.auto_sleep_enabled === undefined)
-            return -1;
-        if (!status.auto_sleep_enabled)
-            return 0;
-        return autoSleepTimes.findIndex(t => t.arg === String(status.auto_sleep_seconds));
-    }
-
-    // The watcher's `available` drives the bar icon when it should hide without a camera. DMS only
-    // fades the pill out, the component and the watch process stay alive, so the icon returns when
-    // the camera is plugged in again.
+    // Any usable camera listed drives the bar icon when it should hide without a camera, also
+    // while none is picked yet. DMS only fades the pill out, the component and the link stay
+    // alive, so the icon returns when the camera is plugged in again.
     function applyVisibility() {
         if (hideWithoutCamera)
-            setVisibilityOverride(available);
+            setVisibilityOverride(link.anyUsable);
         else
             clearVisibilityOverride();
     }
@@ -600,33 +210,117 @@ PluginComponent {
     }
 
     // DMS also creates a throw-away instance only to read ccWidgetIcon; it gets no pluginService
-    // and runs no watch. The bar sets hostContext and the screen; Control Center sets neither.
+    // and opens no connection. The bar sets hostContext and the screen; Control Center sets neither.
     readonly property bool realInstance: pluginService !== null
     readonly property string instanceName: !hostContext ? "Control Center tile or detail page" : (hostContext.kind === "bar" ? "bar widget" : hostContext.kind + " widget") + (parentScreen?.name ? " on screen " + parentScreen.name : "")
 
-    CameraWatch {
-        id: watch
+    CameraLink {
+        id: cameraLink
         active: root.realInstance
         instanceName: root.instanceName
-        device: root.device
-        onStateEvent: next => root.onState(next)
-        onReply: msg => root.handleReply(msg)
-        onStopped: {
-            root.poseSent = false;
-            optimistic.reset();
-            root.pendingLabel = "";
-            root.listedPresets = null;
-            root.presetListIds = ({});
-            root.presetsFailed = false;
-            presetTimeout.stop();
-            root.presetOps = ({});
-            root.stateRefreshed();
+        client: "obsbot4linux-dux"
+        // Live topics only while the popout is open (spec 10.3 D); each only if the device names it
+        liveView: ({
+                open: root.interactionActive,
+                pose: root.cardEnabled("Framing"),
+                target: root.showTargetBox,
+                auto: root.cardEnabled("Picture")
+            })
+        // "Hide without camera" counts any usable camera, picked or not (decision 11)
+        onAnyUsableChanged: root.applyVisibility()
+    }
+    // Not `id: link`: an id and a property of the same name shadow each other (qmllint
+    // id-shadows-member); inside this file `link` is this alias
+    readonly property alias link: cameraLink
+
+    function labels(path) {
+        return Labels.labelsFor(path);
+    }
+    readonly property bool available: link.usable
+    readonly property bool live: link.awake
+    readonly property var problem: Labels.problemText(link.problem)
+    readonly property bool streaming: link.value("on_air.active") === true || previewRunning
+    readonly property var streamingApps: {
+        const apps = link.value("on_air.apps");
+        const names = Array.isArray(apps) ? apps.map(a => String(a.name)).filter(n => n !== "qs") : [];
+        return previewRunning ? names.concat(["qs"]) : names;
+    }
+    readonly property string videoNode: link.device !== null && link.device.video_node ? link.device.video_node : ""
+    readonly property bool previewReady: videoNode !== ""
+    // Decision 14: "Static" for static, "Tracking" for a mode the widget names, else the value's text
+    readonly property string modeText: {
+        const mode = link.value("tracking.mode");
+        if (mode === null || mode === undefined)
+            return "";
+        if (mode === "static")
+            return "Static";
+        return mode in Labels.labelsFor("tracking.mode") ? "Tracking" : Describe.humanize(mode);
+    }
+    // "Pick camera" while the picker still has to be used: no camera picked, a usable one listed
+    readonly property string pillText: link.device !== null && link.device.support === "unsupported" ? "Unsupported" : link.device === null && link.anyUsable ? "Pick camera" : !available ? "Offline" : !live ? "Asleep" : modeText
+    readonly property string statusText: {
+        if (problem !== null)
+            return problem.title;
+        if (link.device === null)
+            return link.devices.length > 0 ? "Pick a camera" : "No camera";
+        if (link.device.support === "unsupported")
+            return "Not supported by obsbot4linux";
+        if (!available)
+            return "Unplugged";
+        const target = link.value("tracking.target.detected");
+        const mode = Describe.choices(link.device, "tracking.mode", labels("tracking.mode")).find(c => c.value === link.value("tracking.mode"));
+        return live ? "Awake · " + (mode ? mode.label : "") + (target === false && link.value("tracking.mode") !== "static" ? " · searching" : "") : "Asleep · lens stowed";
+    }
+    readonly property string baseSummary: (link.device !== null ? link.device.name + (link.marker !== "" ? " (" + link.marker + ")" : "") : "OBSBOT camera") + " · " + statusText
+    readonly property string summary: baseSummary + (streaming ? " · On air" + (streamingApps.length > 0 ? ": " + streamingApps.map(a => appNames[a] ?? a).join(", ") : "") : "")
+
+    // One act: wake while asleep, else sleep. The switch then follows the state (spec 4.4:
+    // clients wait for the state, never for their own value). As in 0.29, the preview stops
+    // when the user sends sleep; a preview started on a sleeping camera stays on while it wakes.
+    function toggleAwake() {
+        if (!available)
+            return;
+        if (live)
+            previewOn = false;
+        link.act(live ? "sleep" : "wake", {});
+    }
+
+    // Middle click: Static <-> the last other mode, one set; only when the description lets
+    // both be written (decision 12)
+    function toggleTracking() {
+        const s = link.setting("tracking.mode");
+        const writable = s && Array.isArray(s.writable) ? s.writable : [];
+        const mode = link.value("tracking.mode");
+        const target = mode === "static" ? lastTrackingMode : "static";
+        if (available && writable.includes("static") && writable.includes(target) && link.blocked("tracking.mode") === null)
+            link.set("tracking.mode", target);
+    }
+
+    // Mouse wheel: 0.1 per notch, rounded to the description's precision of zoom.factor and
+    // inside its bounds, one set
+    function stepZoom(notches) {
+        const spec = link.spec("zoom.factor");
+        const now = link.value("zoom.factor");
+        if (!spec || spec.min === null || spec.max === null || typeof now !== "number" || link.blocked("zoom.factor") !== null)
+            return;
+        const next = Math.max(spec.min, Math.min(spec.max, Describe.roundTo(now + notches * 0.1, spec.precision)));
+        if (next !== now)
+            link.set("zoom.factor", next);
+    }
+
+    // The last tracking mode other than Static, saved as before
+    Connections {
+        target: root.link
+        function onRevisionChanged() {
+            const mode = root.link.value("tracking.mode");
+            if (typeof mode === "string" && mode !== "static" && mode in Labels.labelsFor("tracking.mode") && mode !== root.lastTrackingMode && root.link.status("tracking.mode") === "camera")
+                root.pluginService?.savePluginData(root.pluginId, "lastTrackingMode", mode);
         }
     }
 
-    // Retry button: start the watcher again now
+    // Retry button: connect again now
     function refresh() {
-        watch.refresh();
+        cameraLink.retry();
     }
 
     // Layout: the left column (preview, framing) is always there, the right one has the tabs
@@ -661,10 +355,10 @@ PluginComponent {
 
     // Control Center tile: the icon toggles sleep/wake. Larger tiles and the detail page show
     // the tracking card. Control Center runs its own instance of this component.
-    ccWidgetIcon: !root.available ? "usb_off" : root.live ? "videocam" : "videocam_off"
+    ccWidgetIcon: link.device === null || !available ? "usb_off" : live ? "videocam" : "videocam_off"
     ccWidgetPrimaryText: "OBSBOT Control"
     ccWidgetSecondaryText: root.baseSummary + (root.streaming ? " · On air" : "")
-    ccWidgetIsActive: root.awake
+    ccWidgetIsActive: root.live
     onCcWidgetToggled: root.toggleAwake()
     ccExpandedMinimumHeight: Theme.listItemHeight * 3.5
     ccExpandedContent: Component {
