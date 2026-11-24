@@ -69,7 +69,7 @@ SectionCard {
         enabled: block === null
         opacity: enabled ? 1 : 0.38
         stacked: true
-        label: (section.timeIndex >= 0 ? "After" : "After (" + Format.value(section.ctl.link.setting("sleep.auto.seconds"), section.seconds) + ")") + (section.ctl.link.status("sleep.auto.seconds") === "pending" ? " · pending" : "")
+        label: (section.timeIndex >= 0 ? "After" : "After (" + Format.value(section.ctl.link.setting("sleep.auto.seconds"), section.seconds) + ")") + (section.ctl.link.status("sleep.auto.seconds") === "pending" ? " · pending" : "") + (section.ctl.link.setting("sleep.auto.seconds")?.no_effect ? " · no visible effect" : "") + (block !== null && block.reason === "requires" ? " · needs " + block.needs.map(n => n.path + " = " + n.equals).join(", ") : "")
         options: section.timeChips.map(t => t.label)
         currentIndex: section.timeIndex
         onSelected: index => {
@@ -94,7 +94,7 @@ SectionCard {
     // Stored in the camera and used when it powers on (plugged in), also without the widget running.
     // Waking from sleep, by command or by an app's stream, does not apply it (measured, #75).
     // "Zoom at power-on" (wake_zoom) is not offered: the camera applies it neither at power-on nor
-    // on wake (obsbot4linux#102); the value stays readable in the Camera card.
+    // on wake (obsbot4linux#102).
     StyledText {
         width: parent.width
         visible: section.ctl.link.has("power_on.mode")

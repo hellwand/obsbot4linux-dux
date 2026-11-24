@@ -64,7 +64,7 @@ SectionCard {
         readonly property var block: section.ctl.link.blocked("audio.volume")
         enabled: block === null
         opacity: enabled ? 1 : 0.38
-        label: "Pickup distance" + (section.ctl.link.status("audio.volume") === "pending" ? " · pending" : "")
+        label: "Pickup distance" + (section.ctl.link.status("audio.volume") === "pending" ? " · pending" : "") + (section.ctl.link.setting("audio.volume")?.no_effect ? " · no visible effect" : "") + (block !== null && block.reason === "requires" ? " · needs " + block.needs.map(n => n.path + " = " + n.equals).join(", ") : "")
         options: section.pickupChips.map(p => p.label)
         currentIndex: section.pickupIndex
         onSelected: index => {
