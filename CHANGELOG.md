@@ -20,6 +20,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
   views, and the gimbal arrows (#157).
 - One link object ties the widget's modules together: every control sends exactly one request and
   nothing before or after it (#160).
+- The widget connects to the obsbot4linux 1.0 daemon on its Unix socket (protocol 2) instead of
+  running `obsbot4linux watch`; controls are bound to a path of the camera's description and show a
+  pending value as "pending" (#162).
 
 ## [0.29.2] - 2026-11-13
 
