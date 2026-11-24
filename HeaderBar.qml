@@ -14,7 +14,6 @@ Column {
     spacing: Theme.spacingS
 
     Item {
-        id: top
         width: parent.width
         height: badge.height
 
