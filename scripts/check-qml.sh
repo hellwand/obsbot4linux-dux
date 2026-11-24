@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Check that every QML file of the widget compiles and lints.
+# Check that every QML file and every JavaScript module (lib/*.mjs) of the widget compiles and
+# lints. The modules' behaviour is tested by scripts/check-js.sh.
 #
 # Run it before every pull request:  scripts/check-qml.sh
 #
@@ -63,6 +64,7 @@ qmllint=$(find_tool qmllint) ||
 shopt -s nullglob
 files=("$repo"/*.qml)
 [ "${#files[@]}" -gt 0 ] || die "no .qml files found in $repo"
+files+=("$repo"/lib/*.mjs)
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -70,8 +72,8 @@ trap 'rm -rf "$tmp"' EXIT
 echo "check-qml: qmlcachegen ($qmlcachegen)"
 failed=0
 for f in "${files[@]}"; do
-	name=$(basename "$f")
-	if ! "$qmlcachegen" --only-bytecode --resource-path "/$name" -o "$tmp/$name.cpp" "$f" 2>"$tmp/err"; then
+	name=${f#"$repo"/}
+	if ! "$qmlcachegen" --only-bytecode --resource-path "/$name" -o "$tmp/${name//\//_}.cpp" "$f" 2>"$tmp/err"; then
 		echo "FAIL $name" >&2
 		cat "$tmp/err" >&2
 		failed=1

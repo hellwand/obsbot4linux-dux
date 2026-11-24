@@ -171,6 +171,9 @@ Then add the `obsbot4linuxDux` widget to a bar in DMS settings.
 After changing QML, run `dms restart` (`plugins reload` keeps cached components).
 Before sending a change, run `scripts/check-qml.sh` (needs the Qt 6 tools; it compiles and lints every QML file).
 CI runs it and shellcheck on every pull request into `develop` (or a `release/*` branch); a change lands there only after the pull request's `required` check is green.
+Also run `scripts/check-js.sh` (needs Node.js 20 or newer and the Qt 6 `qml` tool): it runs the tests of the
+JavaScript modules in `lib/` in node and in the QML engine. `tests/fixtures/` is generated from an obsbot4linux
+checkout with `node scripts/sync-fixtures.mjs <checkout>`; do not edit those files by hand.
 
 ## Update
 

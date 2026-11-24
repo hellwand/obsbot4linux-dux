@@ -8,6 +8,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Added
+
+- Tests for the widget's JavaScript modules (`lib/*.mjs`), run in node and in the QML engine by
+  `scripts/check-js.sh` and by CI; the QML check also compiles and lints the modules (#154).
+
 ## [0.29.2] - 2026-11-13
 
 ### Added

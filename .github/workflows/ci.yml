@@ -27,6 +27,18 @@ jobs:
           persist-credentials: false
       - run: bash scripts/check-qml.sh
 
+  # The JavaScript modules (lib/*.mjs): their tests in node and in the QML engine.
+  js:
+    runs-on: ubuntu-24.04
+    container: archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899
+    timeout-minutes: 15
+    steps:
+      - run: pacman -Syu --noconfirm --needed qt6-declarative nodejs
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: bash scripts/check-js.sh
+
   shellcheck:
     runs-on: ubuntu-24.04
     container: archlinux:latest@sha256:d4594bb2300cba11f41c2f27923eb56f63d9988909c402f9c95517d1e362c899
@@ -51,17 +63,19 @@ jobs:
   # The check the branch rulesets require. It passes only when every gate succeeded.
   required:
     name: required
-    needs: [qml, shellcheck, changelog]
+    needs: [qml, js, shellcheck, changelog]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:
       QML: ${{ needs.qml.result }}
+      JS: ${{ needs.js.result }}
       SHELLCHECK: ${{ needs.shellcheck.result }}
       CHANGELOG: ${{ needs.changelog.result }}
     steps:
       - run: |
-          echo "qml=$QML shellcheck=$SHELLCHECK changelog=$CHANGELOG"
+          echo "qml=$QML js=$JS shellcheck=$SHELLCHECK changelog=$CHANGELOG"
           test "$QML" = success
+          test "$JS" = success
           test "$SHELLCHECK" = success
           test "$CHANGELOG" = success
