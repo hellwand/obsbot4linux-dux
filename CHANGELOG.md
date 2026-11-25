@@ -33,6 +33,8 @@ Release candidate of widget 1.0 for obsbot4linux 1.0.0-rc.1: not released on `ma
 - A camera picker in the popout header when obsbot4linux lists more than one camera, with the marks "untested" and "unsupported"; for an unsupported camera the widget shows no controls and says how to report it (`obsbot4linux devices --report`). Without a running daemon the header shows the command that starts it (#168).
 
 ### Changed
+- Test fixtures synced to obsbot4linux 1.0.0-rc.1 (camera session 1); the start mode offers only the
+  values the camera's description names (#183).
 
 - The bar pill, the Control Center tile and the popout read the camera from obsbot4linux 1.0's
   daemon. Values the widget sends show at once and stay until the daemon answers; there is no 3 s

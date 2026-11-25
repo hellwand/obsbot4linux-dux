@@ -15,7 +15,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -38,7 +38,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -48,7 +48,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "off",
@@ -70,7 +70,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 100,
@@ -90,8 +90,7 @@ export default {
    "values": [
     "off",
     "50hz",
-    "60hz",
-    "auto"
+    "60hz"
    ],
    "writable": [
     "off",
@@ -106,7 +105,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 18,
@@ -121,7 +120,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 1,
    "max": 64,
@@ -137,7 +136,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -147,7 +146,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "auto",
@@ -165,7 +164,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "face",
@@ -187,6 +186,7 @@ export default {
    "no_effect": false,
    "min": 100,
    "max": 250000,
+   "step": 100,
    "unit": "us",
    "precision": 1,
    "requires": [
@@ -205,7 +205,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "continuous",
@@ -246,7 +246,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "face",
@@ -264,7 +264,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -274,7 +274,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": -0.16,
    "max": 0.16,
@@ -288,7 +288,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": -0.16,
    "max": 0.16,
@@ -302,7 +302,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "normal",
@@ -322,7 +322,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "long_shot",
@@ -348,7 +348,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "slow",
@@ -368,7 +368,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -378,7 +378,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -388,7 +388,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -398,7 +398,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -408,7 +408,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 1,
    "max": 4,
@@ -423,7 +423,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -489,26 +489,6 @@ export default {
    "precision": 0.1,
    "settle_ms": 3000
   },
-  "hand.axes.pan": {
-   "type": "bool",
-   "label": "Hand tracking may pan",
-   "readonly": false,
-   "nullable": false,
-   "readback": true,
-   "asleep": "unknown",
-   "no_effect": false,
-   "settle_ms": 3000
-  },
-  "hand.axes.tilt": {
-   "type": "bool",
-   "label": "Hand tracking may tilt",
-   "readonly": false,
-   "nullable": false,
-   "readback": true,
-   "asleep": "unknown",
-   "no_effect": false,
-   "settle_ms": 3000
-  },
   "hand.move_gimbal": {
    "type": "bool",
    "label": "Hand tracking moves the gimbal",
@@ -552,7 +532,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "unit": "s",
@@ -565,7 +545,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "left",
@@ -583,7 +563,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 100,
@@ -598,7 +578,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 100,
@@ -624,7 +604,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 100,
@@ -639,7 +619,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -649,7 +629,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 100,
@@ -664,7 +644,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 100,
@@ -679,7 +659,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "default": true,
    "settle_ms": 3000
@@ -690,7 +670,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 2000,
    "max": 10000,
@@ -722,7 +702,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 0,
    "max": 3,
@@ -763,7 +743,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "static",
@@ -787,111 +767,21 @@ export default {
    ],
    "settle_ms": 3000
   },
-  "power_on.settings.auto_exposure": {
-   "type": "number",
-   "label": "Initial automatic exposure (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.autofocus": {
-   "type": "number",
-   "label": "Initial autofocus (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.contrast": {
-   "type": "number",
-   "label": "Initial contrast (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.exposure_compensation": {
-   "type": "number",
-   "label": "Initial exposure compensation (raw)",
-   "readonly": true,
-   "nullable": false,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.hue": {
-   "type": "number",
-   "label": "Initial hue (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.saturation": {
-   "type": "number",
-   "label": "Initial saturation (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.sharpness": {
-   "type": "number",
-   "label": "Initial sharpness (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.tracking_speed": {
-   "type": "number",
-   "label": "Initial tracking speed (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.white_balance_mode": {
-   "type": "number",
-   "label": "Initial white balance mode (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
-  "power_on.settings.white_balance_temperature": {
-   "type": "number",
-   "label": "Initial white balance temperature (raw)",
-   "readonly": true,
-   "nullable": true,
-   "readback": true,
-   "no_effect": false
-  },
   "power_on.start.mode": {
    "type": "enum",
    "label": "Initial tracking mode",
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
-    "static",
     "normal",
-    "upper_body",
     "close_up",
-    "headless",
-    "lower_body",
-    "hand",
-    "group",
     "unset"
    ],
    "writable": [
-    "static",
     "normal",
-    "upper_body",
-    "headless",
-    "group",
     "unset"
    ],
    "settle_ms": 3000
@@ -1003,7 +893,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -1013,7 +903,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "min": 1,
    "max": 32767,
@@ -1028,7 +918,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "black",
@@ -1047,7 +937,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -1057,7 +947,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": true,
    "min": 1,
    "max": 4,
@@ -1071,7 +961,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "static",
@@ -1101,7 +991,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "standard",
@@ -1121,7 +1011,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "values": [
     "lazy",
@@ -1276,7 +1166,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -1286,7 +1176,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": true,
-   "asleep": "unknown",
+   "asleep": "accepted",
    "no_effect": false,
    "settle_ms": 3000
   },
@@ -1373,36 +1263,6 @@ export default {
     "restart"
    ]
   },
-  "focus.point": {
-   "label": "Focus on a point",
-   "params": {
-    "x": {
-     "type": "number",
-     "label": "x",
-     "readonly": false,
-     "nullable": false,
-     "readback": true,
-     "no_effect": false,
-     "min": 0,
-     "max": 1,
-     "unit": "fraction",
-     "precision": 0.01
-    },
-    "y": {
-     "type": "number",
-     "label": "y",
-     "readonly": false,
-     "nullable": false,
-     "readback": true,
-     "no_effect": false,
-     "min": 0,
-     "max": 1,
-     "unit": "fraction",
-     "precision": 0.01
-    }
-   },
-   "asleep": "unknown"
-  },
   "gimbal.move": {
    "label": "Move the gimbal",
    "params": {
@@ -1427,7 +1287,7 @@ export default {
      "readback": true,
      "no_effect": false,
      "min": 1,
-     "max": 180,
+     "max": 100,
      "unit": "deg/s",
      "precision": 0.1,
      "optional": true
