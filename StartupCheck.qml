@@ -1,69 +1,23 @@
 import QtQuick
 import qs.Common
+import "lib/version.mjs" as Version
 
-// Dependency gate: the plugin only activates when obsbot4linux is installed, new enough and
-// older than 1.0 (0.3.1 detects streaming in the kernel driver, so every app counts; 0.5.0 reads
-// the zone settings from the camera and sets the zone return position for real; 0.7.1 reports the
-// gimbal and zone ranges as `limits` and stops tilt above the camera's sleep threshold; 0.7.3
-// fixes zone tracking ending in Static, so "Follow new targets" works). obsbot4linux 1.0 and
-// newer speak a new protocol that this 0.x widget does not know, so they need widget 1.0 or newer.
-// The camera itself is not required, the widget copes with it being unplugged.
+// Dependency gate: the plugin activates only with obsbot4linux 1.0 or newer, which speaks
+// protocol 2 on its socket. A release candidate of 1.0.0 counts as 1.0.0. The camera itself is
+// not required.
 QtObject {
-    readonly property var minVersion: [0, 7, 3]
-    // exclusive upper bound
-    readonly property var maxVersion: [1, 0, 0]
-    readonly property string releases: "https://github.com/hellwand/obsbot4linux/releases"
-    readonly property string widgetReleases: "https://github.com/hellwand/obsbot4linux-dux/releases"
-
-    // "obsbot4linux 0.2.0" -> [0, 2, 0]; null when there is no version in the text
-    function parseVersion(text) {
-        const m = /(\d+)\.(\d+)\.(\d+)/.exec(text);
-        return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
-    }
-
-    function isOlder(version, minimum) {
-        for (let i = 0; i < 3; i++) {
-            if (version[i] !== minimum[i])
-                return version[i] < minimum[i];
-        }
-        return false;
-    }
+    readonly property var minVersion: [1, 0, 0]
+    readonly property var links: ({
+            releases: "https://github.com/hellwand/obsbot4linux/releases",
+            widgetReleases: "https://github.com/hellwand/obsbot4linux-dux/releases"
+        })
 
     function check(done) {
         // The command can answer after this object is gone (the widget was created twice in a
         // row); the callback then must not read the object, so it works on copies only.
         const minV = minVersion;
-        const maxV = maxVersion;
-        const releasesUrl = releases;
-        const widgetReleasesUrl = widgetReleases;
-        const parse = parseVersion;
-        const older = isOlder;
-        Proc.runCommand("obsbot4linuxDux.depCheck", ["sh", "-c", "command -v obsbot4linux >/dev/null && obsbot4linux --version"], (stdout, exitCode) => {
-            const minimum = minV.join(".");
-            const range = minimum + " or newer (before " + maxV[0] + ".0)";
-            if (exitCode !== 0) {
-                done({
-                    "title": "obsbot4linux is required",
-                    "details": "The 'obsbot4linux' tool is not installed or not on your PATH. This plugin needs obsbot4linux " + range + ".\n\nInstall it from " + releasesUrl + " (packages for Arch, Debian/Ubuntu, Fedora/openSUSE and a tarball), then enable this plugin again."
-                });
-                return;
-            }
-            const version = parse(stdout);
-            if (version && !older(version, minV) && older(version, maxV)) {
-                done(null);
-                return;
-            }
-            if (version && !older(version, maxV)) {
-                done({
-                    "title": "obsbot4linux " + maxV[0] + ".0 or newer needs a newer widget",
-                    "details": "Installed: " + stdout.trim() + ". This widget version works with obsbot4linux " + minimum + " or newer but older than " + maxV[0] + ".0, because obsbot4linux " + maxV[0] + ".0 and newer speak a new protocol.\n\nUpdate this plugin (obsbot4linux-dux) to " + maxV[0] + ".0 or newer from " + widgetReleasesUrl + ", then enable it again."
-                });
-                return;
-            }
-            done({
-                "title": "obsbot4linux " + minimum + " or newer is required",
-                "details": "Installed: " + stdout.trim() + ". This plugin needs obsbot4linux " + range + "; " + minimum + " fixes zone tracking ending in Static.\n\nUpdate it from " + releasesUrl + ", then enable this plugin again."
-            });
-        });
+        const urls = links;
+        const checkTool = Version.checkTool;
+        Proc.runCommand("obsbot4linuxDux.depCheck", ["sh", "-c", "command -v obsbot4linux >/dev/null && obsbot4linux --version"], (stdout, exitCode) => done(checkTool(stdout, exitCode, minV, null, urls)));
     }
 }

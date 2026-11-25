@@ -48,6 +48,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - Desktop widget: its own link to the obsbot4linux 1.0 daemon, a camera picker, as many preset
   buttons as the camera has; the preview frame says when the daemon is not running and how to start
   it, and when a camera is not supported (#180).
+- Needs obsbot4linux 1.0 or newer: the startup check refuses older versions and accepts a 1.0
+  release candidate. Enable the daemon's socket once with
+  `systemctl --user enable --now obsbot4linux.socket`. The README describes the 1.0 setup (#183).
 
 ### Removed
 

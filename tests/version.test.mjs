@@ -28,6 +28,12 @@ export const tests = {
       "details name the installed version",
     );
   },
+  // Widget 1.0 keeps working with newer tools (it shows what the description offers), so the
+  // 1.0 check has no upper bound
+  "widget 1.0 accepts newer obsbot4linux releases": () => {
+    eq(checkTool("obsbot4linux 1.4.0", 0, [1, 0, 0], null, links), null);
+    eq(checkTool("obsbot4linux 2.0.0", 0, [1, 0, 0], null, links), null);
+  },
   // The 0.x widget's bound: obsbot4linux 1.0 needs widget 1.0
   "a 0.x widget refuses 1.0 and points to the widget releases": () => {
     const r = checkTool("obsbot4linux 1.0.0", 0, [0, 7, 3], [1, 0, 0], links);
