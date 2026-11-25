@@ -8,6 +8,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-11-25
+
+Release candidate of widget 1.0 for obsbot4linux 1.0.0-rc.1: not released on `main`, so
+`dms plugins update` keeps installing 0.29.2 until 1.0.0.
+
 ### Added
 
 - Tests for the widget's JavaScript modules (`lib/*.mjs`), run in node and in the QML engine by
