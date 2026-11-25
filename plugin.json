@@ -2,7 +2,7 @@
   "id": "obsbot4linuxDux",
   "name": "OBSBOT Control",
   "description": "Bar widget and desktop preview for OBSBOT webcams, built on obsbot4linux 1.0: the controls each camera's description offers, a camera picker and a live preview",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0",
   "author": "nofuturekid",
   "license": "GPL-3.0-or-later",
   "icon": "videocam",

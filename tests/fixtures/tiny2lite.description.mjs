@@ -699,7 +699,7 @@ export default {
    "readonly": false,
    "nullable": false,
    "readback": false,
-   "asleep": "unknown",
+   "asleep": "ignored",
    "no_effect": false
   },
   "led.brightness": {

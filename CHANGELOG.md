@@ -8,18 +8,10 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
-### Fixed
+## [1.0.0] - 2026-11-26
 
-- The test fixtures follow the tool's 1.0.0-rc.3 descriptions: the gain now requires
-  `exposure.mode` manual, so the widget blocks it with the reason like the exposure time.
-- The desktop widget shows the camera's presets again: the preset slots read the anchor line
-  `bottom` instead of the bottom row, so they had no link. The QML check now fails on an id that
-  has the name of a member (#185).
-
-## [1.0.0-rc.1] - 2026-11-25
-
-Release candidate of widget 1.0 for obsbot4linux 1.0.0-rc.1: not released on `main`, so
-`dms plugins update` keeps installing 0.29.2 until 1.0.0.
+Needs obsbot4linux 1.0 (protocol 2). Update the widget together with the tool, enable the daemon's
+socket once (`systemctl --user enable --now obsbot4linux.socket`) and restart the shell.
 
 ### Added
 
@@ -74,6 +66,12 @@ Release candidate of widget 1.0 for obsbot4linux 1.0.0-rc.1: not released on `ma
 
 ### Fixed
 
+- The test fixtures follow the tool's 1.0.0 descriptions: the gain now requires `exposure.mode`
+  manual, so the widget blocks it with the reason like the exposure time; `led.blink` is ignored
+  while the camera sleeps, so the widget blocks it then with the reason.
+- The desktop widget shows the camera's presets again: the preset slots read the anchor line
+  `bottom` instead of the bottom row, so they had no link. The QML check now fails on an id that
+  has the name of a member (#185).
 - Start-up check: a late answer of its version command, after the check is gone, no longer logs
   "Cannot call method 'join' of undefined" (#152).
 
