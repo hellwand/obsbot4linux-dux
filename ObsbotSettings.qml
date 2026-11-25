@@ -35,7 +35,7 @@ PluginSettings {
         visible: !root.desktopInstance
         settingKey: "statusTextInBar"
         label: "Status text in the bar"
-        description: "Shows Static, Tracking, Asleep or Offline next to the icon on a horizontal bar; the pill keeps its width"
+        description: "Shows the camera state (such as Static, Tracking, Asleep, Offline, Pick camera or Unsupported) next to the icon on a horizontal bar; the pill keeps its width"
         defaultValue: false
     }
 

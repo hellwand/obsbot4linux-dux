@@ -109,11 +109,11 @@ Settings page: switches for "Mouse wheel zooms" and "Middle click toggles tracki
 (both on by default).
 Right click is always sleep/wake. Further switches, all applied at once:
 
-| Setting                                                                                                                                                              | Key                                                                                                                                                                      | Default |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| Hide the bar icon without a camera: follows the daemon's device list, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed) | `hideWithoutCamera`                                                                                                                                                      | off     |
-| Status text in the bar: Static / Tracking / Asleep / Offline (no camera, dimmed) next to the icon in a fixed-width slot, horizontal bars only                        | `statusTextInBar`                                                                                                                                                        | off     |
-| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Zone, Presets, Picture, Image, Audio, Gestures, Factory reset                                               | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardZone`, `cardPresets`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on      |
+| Setting                                                                                                                                                                                                          | Key                                                                                                                                                                      | Default |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| Hide the bar icon without a camera: follows the daemon's device list, no polling; the icon returns when the camera is plugged in again (off: the icon stays, dimmed)                                             | `hideWithoutCamera`                                                                                                                                                      | off     |
+| Status text in the bar: Static / Tracking (or the name of another tracking mode) / Asleep / Offline (no camera, dimmed) / Pick camera / Unsupported next to the icon in a fixed-width slot, horizontal bars only | `statusTextInBar`                                                                                                                                                        | off     |
+| Popout cards: Preview, Framing, Camera, Sleep, Tracking, Zone, Presets, Picture, Image, Audio, Gestures, Factory reset                                                                                           | `cardPreview`, `cardFraming`, `cardCamera`, `cardSleep`, `cardTracking`, `cardZone`, `cardPresets`, `cardPicture`, `cardImage`, `cardAudio`, `cardGestures`, `cardReset` | on      |
 
 The card switches affect the popout only (not the bar icon actions or the Control
 Center tile). A card the connected camera does not support stays hidden whatever its
@@ -207,7 +207,8 @@ dms restart
 version; work happens on `develop`. Update the widget and obsbot4linux together: widget 1.0 needs
 obsbot4linux 1.0 or newer, and a 0.x widget refuses obsbot4linux 1.0. After updating obsbot4linux,
 restart its daemon (`systemctl --user restart obsbot4linux.service`) or log out and in again, so
-that no daemon older than 1.0 keeps running.
+that no daemon older than 1.0 keeps running. The restart only stops a daemon that systemd started;
+one the 0.x widget started (`obsbot4linux watch`) keeps running until you log out and in again.
 
 ## Development
 

@@ -34,6 +34,17 @@ export const tests = {
     eq(checkTool("obsbot4linux 1.4.0", 0, [1, 0, 0], null, links), null);
     eq(checkTool("obsbot4linux 2.0.0", 0, [1, 0, 0], null, links), null);
   },
+  // The first stable release itself must pass the 1.0 check (min is inclusive, no upper bound)
+  "widget 1.0 accepts obsbot4linux 1.0.0": () => {
+    eq(checkTool("obsbot4linux 1.0.0", 0, [1, 0, 0], null, links), null);
+  },
+  // 0.14.0 is the last 0.x on the owner's desktop and speaks protocol 1, so it must be refused
+  "widget 1.0 refuses obsbot4linux 0.14.0": () => {
+    eq(
+      checkTool("obsbot4linux 0.14.0", 0, [1, 0, 0], null, links).title,
+      "obsbot4linux 1.0.0 or newer is required",
+    );
+  },
   // The 0.x widget's bound: obsbot4linux 1.0 needs widget 1.0
   "a 0.x widget refuses 1.0 and points to the widget releases": () => {
     const r = checkTool("obsbot4linux 1.0.0", 0, [0, 7, 3], [1, 0, 0], links);
