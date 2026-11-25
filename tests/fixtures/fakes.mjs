@@ -123,7 +123,6 @@ export const STATES = {
       gimbal: { invert: false, pan: 0, tilt: 0 },
       hand: {
         area: { pan: { max: 150, min: -150 }, tilt: { max: 90, min: -70 } },
-        axes: { pan: false, tilt: false },
         move_gimbal: null,
         return: null,
         return_after: 0,
@@ -143,20 +142,8 @@ export const STATES = {
       on_air: { active: false, apps: [] },
       power_on: {
         mode: "static",
-        settings: {
-          auto_exposure: null,
-          autofocus: null,
-          contrast: null,
-          exposure_compensation: 0,
-          hue: null,
-          saturation: null,
-          sharpness: null,
-          tracking_speed: null,
-          white_balance_mode: null,
-          white_balance_temperature: null,
-        },
         start: {
-          mode: "static",
+          mode: "normal",
           pose: { pan: 0, tilt: 0, zoom: 1 },
           source: "own",
         },
