@@ -54,6 +54,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 - The `obsbot4linux watch` process and the 3 s hold of values (`CameraWatch.qml`,
   `OptimisticState.qml`) (#180).
 
+### Fixed
+
+- Start-up check: a late answer of its version command, after the check is gone, no longer logs
+  "Cannot call method 'join' of undefined" (#152).
+
 ## [0.29.2] - 2026-11-13
 
 ### Added
