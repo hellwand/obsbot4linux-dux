@@ -40,7 +40,7 @@ jobs:
           persist-credentials: false
       - run: bash scripts/check-js.sh
 
-  # The widget's link against the daemon in fake mode, built from the tool's release tag v1.0.0
+  # The widget's link against the daemon in fake mode, built from the tool's release tag v1.0.1
   # (spec 10.3 D: acceptance against obsbot4linuxd --fake fake-a,fake-b,unknown). Also checks that
   # tests/fixtures matches the tool's generated files.
   e2e:
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: hellwand/obsbot4linux
-          ref: v1.0.0
+          ref: v1.0.1
           path: tool
           persist-credentials: false
       - run: cargo build --locked --manifest-path tool/Cargo.toml -p obsbot4linuxd

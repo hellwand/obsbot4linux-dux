@@ -8,13 +8,17 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-26
+
+Pairs with obsbot4linux 1.0.1: the target frame fix (#190) needs it.
+
 ### Fixed
 
 - Chip rows (such as the tracking mode) highlight the value the camera reports after every change:
   in the desktop widget and in the popout they kept the previous value highlighted (#189).
 - The preview's target frame goes when obsbot4linux lists the box in `unread`, which it does in
-  Static once the fix for hellwand/obsbot4linux#375 (#376) is released (the target is not read
-  then); before, the frame stayed where the target was last seen (#190).
+  Static from obsbot4linux 1.0.1 on (hellwand/obsbot4linux#375; the target is not read then);
+  before, the frame stayed where the target was last seen (#190).
 
 ## [1.0.0] - 2026-11-26
 
