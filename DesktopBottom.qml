@@ -14,7 +14,9 @@ import "lib/lists.mjs" as Lists
 // all of one height (Style.buttonHeightS) and standing on one line.
 // interactive: false ignores the buttons (desktop edit mode).
 Item {
-    id: bottom
+    // Not `id: bottom`: every Item has an anchor line named bottom, and inside the presets
+    // Repeater's delegate that member wins over an id of this file (the slots got no link).
+    id: bottomRow
 
     property var ctl
     property bool interactive: true
@@ -36,21 +38,21 @@ Item {
     // - / slider with its label and value / +; the buttons stand on the slider's line
     Item {
         id: zoomItem
-        width: bottom.sectionWidth
-        height: bottom.contentHeight
-        enabled: bottom.interactive
-        visible: bottom.ctl.link.has("zoom.factor")
+        width: bottomRow.sectionWidth
+        height: bottomRow.contentHeight
+        enabled: bottomRow.interactive
+        visible: bottomRow.ctl.link.has("zoom.factor")
 
         DButton {
             id: zoomOut
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            buttonHeight: bottom.controlHeight
+            buttonHeight: bottomRow.controlHeight
             iconName: "remove"
             minimumWidth: 0
             tooltipText: "Zoom out"
-            enabled: bottom.zoomFree && bottom.zoomNow > bottom.zoomSpec.min
-            onClicked: bottom.ctl.stepZoom(-1)
+            enabled: bottomRow.zoomFree && bottomRow.zoomNow > bottomRow.zoomSpec.min
+            onClicked: bottomRow.ctl.stepZoom(-1)
         }
 
         SettingSlider {
@@ -59,7 +61,7 @@ Item {
             anchors.right: zoomIn.left
             anchors.margins: Theme.spacingS
             anchors.bottom: parent.bottom
-            link: bottom.ctl.link
+            link: bottomRow.ctl.link
             path: "zoom.factor"
             text: "Zoom"
         }
@@ -68,12 +70,12 @@ Item {
             id: zoomIn
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            buttonHeight: bottom.controlHeight
+            buttonHeight: bottomRow.controlHeight
             iconName: "add"
             minimumWidth: 0
             tooltipText: "Zoom in"
-            enabled: bottom.zoomFree && bottom.zoomNow < bottom.zoomSpec.max
-            onClicked: bottom.ctl.stepZoom(1)
+            enabled: bottomRow.zoomFree && bottomRow.zoomNow < bottomRow.zoomSpec.max
+            onClicked: bottomRow.ctl.stepZoom(1)
         }
     }
 
@@ -82,15 +84,15 @@ Item {
     // the tooltip.
     Item {
         id: presetsItem
-        x: bottom.sectionWidth + Theme.spacingL
-        width: bottom.sectionWidth
-        height: bottom.contentHeight
-        enabled: bottom.interactive
-        opacity: bottom.ctl.link.blocked("preset.recall") === null ? 1 : 0.38
-        visible: bottom.ctl.link.has("presets")
+        x: bottomRow.sectionWidth + Theme.spacingL
+        width: bottomRow.sectionWidth
+        height: bottomRow.contentHeight
+        enabled: bottomRow.interactive
+        opacity: bottomRow.ctl.link.blocked("preset.recall") === null ? 1 : 0.38
+        visible: bottomRow.ctl.link.has("presets")
 
-        readonly property bool anySaved: bottom.rows !== null && bottom.rows.some(r => r.used)
-        readonly property int slotCount: Math.max(1, bottom.rows?.length ?? 0)
+        readonly property bool anySaved: bottomRow.rows !== null && bottomRow.rows.some(r => r.used)
+        readonly property int slotCount: Math.max(1, bottomRow.rows?.length ?? 0)
         readonly property real slotWidth: (width - Theme.spacingS * (slotCount - 1)) / slotCount
 
         StyledText {
@@ -106,13 +108,13 @@ Item {
             visible: presetsItem.anySaved
 
             Repeater {
-                model: bottom.rows ?? []
+                model: bottomRow.rows ?? []
 
                 PresetSlot {
                     required property var modelData
                     width: presetsItem.slotWidth
-                    height: bottom.controlHeight
-                    link: bottom.ctl.link
+                    height: bottomRow.controlHeight
+                    link: bottomRow.ctl.link
                     row: modelData
                 }
             }
@@ -121,11 +123,11 @@ Item {
         StyledText {
             anchors.bottom: parent.bottom
             width: parent.width
-            height: bottom.controlHeight
+            height: bottomRow.controlHeight
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
             visible: !presetsItem.anySaved
-            text: bottom.rows === null ? (bottom.ctl.available ? "Presets not read yet" : "") : "No presets saved"
+            text: bottomRow.rows === null ? (bottomRow.ctl.available ? "Presets not read yet" : "") : "No presets saved"
             color: Theme.surfaceVariantText
             font.pixelSize: Theme.fontSizeSmall
         }
@@ -135,15 +137,15 @@ Item {
         id: powerButton
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        buttonHeight: bottom.controlHeight
-        enabled: bottom.interactive && (!bottom.ctl.available || bottom.ctl.link.blocked(bottom.ctl.live ? "sleep" : "wake") === null)
-        text: !bottom.ctl.available ? "Retry" : bottom.ctl.live ? "Sleep" : "Wake"
-        iconName: !bottom.ctl.available ? "refresh" : bottom.ctl.live ? "bedtime" : "videocam"
+        buttonHeight: bottomRow.controlHeight
+        enabled: bottomRow.interactive && (!bottomRow.ctl.available || bottomRow.ctl.link.blocked(bottomRow.ctl.live ? "sleep" : "wake") === null)
+        text: !bottomRow.ctl.available ? "Retry" : bottomRow.ctl.live ? "Sleep" : "Wake"
+        iconName: !bottomRow.ctl.available ? "refresh" : bottomRow.ctl.live ? "bedtime" : "videocam"
         onClicked: {
-            if (!bottom.ctl.available)
-                bottom.ctl.refresh();
+            if (!bottomRow.ctl.available)
+                bottomRow.ctl.refresh();
             else
-                bottom.ctl.toggleAwake();
+                bottomRow.ctl.toggleAwake();
         }
     }
 }

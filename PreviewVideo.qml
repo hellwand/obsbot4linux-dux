@@ -75,17 +75,17 @@ Item {
                         });
                     }
                 }
-                videoOutput: videoOutput
+                videoOutput: output
             }
 
             VideoOutput {
-                id: videoOutput
+                id: output
                 anchors.fill: parent
                 fillMode: VideoOutput.PreserveAspectFit
             }
 
             Connections {
-                target: videoOutput.videoSink
+                target: output.videoSink
                 // QQuickVideoSink's videoFrameChanged has no argument in QML (QVideoFrame is an
                 // opaque type there: no width, no isValid), so any emission counts
                 function onVideoFrameChanged() {

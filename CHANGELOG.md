@@ -8,6 +8,12 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Fixed
+
+- The desktop widget shows the camera's presets again: the preset slots read the anchor line
+  `bottom` instead of the bottom row, so they had no link. The QML check now fails on an id that
+  has the name of a member (#185).
+
 ## [1.0.0-rc.1] - 2026-11-25
 
 Release candidate of widget 1.0 for obsbot4linux 1.0.0-rc.1: not released on `main`, so

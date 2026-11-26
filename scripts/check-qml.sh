@@ -7,7 +7,8 @@
 # 1. qmlcachegen compiles each *.qml. This is a hard fail: it catches what makes the shell
 #    refuse to load a file at run time, such as a property-change handler defined twice.
 # 2. qmllint then reports what is left. The categories that only complain that the shell's own
-#    import tree is not available here are switched off.
+#    import tree is not available here are switched off. An id with the name of a member (such
+#    as `bottom`, an Item's anchor line) fails: inside a delegate the member wins over the id.
 #
 # The Qt 6 tools are looked up in this order:
 #   1. $OBSBOT_QT6_DIR (the Qt install directory, or its bin/ or libexec/ directory); when set,
@@ -84,7 +85,7 @@ done
 echo "check-qml: qmllint ($qmllint)"
 "$qmllint" -W 0 \
 	--unqualified disable --import disable --unresolved-type disable \
-	--missing-property disable --id-shadows-member info --incompatible-type info \
+	--missing-property disable --id-shadows-member warning --incompatible-type info \
 	"${files[@]}" || die "qmllint reported problems (see above)"
 
 echo "check-qml: ok (${#files[@]} files)"
