@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { eq, ok } from "./assert.mjs";
-import { changed, defaults, OwnValues, shown, status } from "../lib/values.mjs";
+import {
+  changed,
+  defaults,
+  OwnValues,
+  shown,
+  status,
+  targetBox,
+} from "../lib/values.mjs";
 import { number, unitText, value } from "../lib/format.mjs";
 import { setting } from "../lib/describe.mjs";
 import { A, B, STATES } from "./fixtures/fakes.mjs";
@@ -18,6 +25,17 @@ const IMAGE = [
 ];
 
 export const tests = {
+  // Measured on the Tiny 2 Lite with 1.0.0: after a switch to Static the state kept the last box
+  // and detected true for as long as the mode stayed Static, because the target is not asked then.
+  "no target box in Static: the box is the last one read, not where the target is":
+    () => {
+      const box = { left: 0, top: 0.39, right: 0.19, bottom: 0.98 };
+      eq(targetBox("static", box), null);
+      eq(targetBox("normal", box), box);
+      eq(targetBox("close_up", box), box);
+      eq(targetBox("normal", null), null);
+      eq(targetBox(null, box), box);
+    },
   // 4.1 rule 4: own value from sending until the reply, then the state with its pending values
   "own value, then pending, then the camera's value": () => {
     const own = new OwnValues();
