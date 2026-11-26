@@ -12,8 +12,9 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 - Chip rows highlight the value the camera reports after every change: the tracking mode chips in
   the desktop widget and in the popout kept the previous mode highlighted (#189).
-- The preview draws no target frame in Static: obsbot4linux reads the target only while the camera
-  tracks, so the frame stayed where the target was last seen (#190).
+- The preview's target frame goes when obsbot4linux lists the box in `unread`, which it does in
+  Static once hellwand/obsbot4linux#375 is released (the target is not read then); before, the
+  frame stayed where the target was last seen (#190).
 
 ## [1.0.0] - 2026-11-26
 

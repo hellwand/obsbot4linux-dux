@@ -25,17 +25,34 @@ const IMAGE = [
 ];
 
 export const tests = {
-  // Measured on the Tiny 2 Lite with 1.0.0: after a switch to Static the state kept the last box
-  // and detected true for as long as the mode stayed Static, because the target is not asked then.
-  "no target box in Static: the box is the last one read, not where the target is":
-    () => {
-      const box = { left: 0, top: 0.39, right: 0.19, bottom: 0.98 };
-      eq(targetBox("static", box), null);
-      eq(targetBox("normal", box), box);
-      eq(targetBox("close_up", box), box);
-      eq(targetBox("normal", null), null);
-      eq(targetBox(null, box), box);
-    },
+  // Measured on the Tiny 2 Lite with 1.0.0: in Static the state kept the last box, because the
+  // target is not read then; obsbot4linux lists the box in `unread` from then on. The frame
+  // follows the state: it goes when the state stops reporting the box as current, and when the
+  // camera reports no box.
+  "the target box goes when the state stops reporting it": () => {
+    const box = { left: 0, top: 0.39, right: 0.19, bottom: 0.98 };
+    const path = "tracking.target.box";
+    const tracking = {
+      available: true,
+      pending: {},
+      unread: [],
+      tracking: { mode: "normal", target: { detected: true, box } },
+    };
+    // the QML engine has no object spread
+    const still = Object.assign({}, tracking, {
+      unread: ["tracking.target.detected", path],
+      tracking: { mode: "static", target: { detected: true, box } },
+    });
+    const none = Object.assign({}, tracking, {
+      tracking: { mode: "normal", target: { detected: false, box: null } },
+    });
+    const frame = (state) =>
+      targetBox(shown(state, null, path), status(state, null, path));
+    eq(frame(tracking), box);
+    eq(frame(still), null);
+    eq(frame(none), null);
+    eq(frame(tracking), box);
+  },
   // 4.1 rule 4: own value from sending until the reply, then the state with its pending values
   "own value, then pending, then the camera's value": () => {
     const own = new OwnValues();

@@ -126,10 +126,10 @@ ClippingRectangle {
 
     // Experimental: the tracked target's box (tracking.target.box, an object with left, top, right
     // and bottom as fractions of the picture, or null) over the 16:9 video, which PreserveAspectFit
-    // centres in the frame. None in Static: the target is not read then (lib/values.mjs targetBox)
+    // centres in the frame. None while the box is in `unread` (lib/values.mjs targetBox)
     Item {
         readonly property real videoWidth: Math.min(frame.width, frame.height * 16 / 9)
-        readonly property var box: Values.targetBox(frame.ctl.link.value("tracking.mode"), frame.ctl.link.value("tracking.target.box"))
+        readonly property var box: Values.targetBox(frame.ctl.link.value("tracking.target.box"), frame.ctl.link.status("tracking.target.box"))
         x: (frame.width - width) / 2
         y: (frame.height - height) / 2
         width: videoWidth
