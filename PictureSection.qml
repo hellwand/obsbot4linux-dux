@@ -45,7 +45,7 @@ SectionCard {
         text: "Exposure time"
     }
 
-    // The description gives the gain no `requires`: the widget adds no gate of its own
+    // Blocked, with the reason, until exposure.mode is manual (the description's `requires`, as for the time)
     SettingSlider {
         width: parent.width
         link: section.ctl.link

@@ -126,6 +126,12 @@ export default {
    "max": 64,
    "step": 1,
    "precision": 1,
+   "requires": [
+    {
+     "path": "exposure.mode",
+     "equals": "manual"
+    }
+   ],
    "default": 1,
    "live": "auto",
    "settle_ms": 3000

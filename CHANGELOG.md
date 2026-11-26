@@ -10,6 +10,8 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ### Fixed
 
+- The test fixtures follow the tool's 1.0.0-rc.3 descriptions: the gain now requires
+  `exposure.mode` manual, so the widget blocks it with the reason like the exposure time.
 - The desktop widget shows the camera's presets again: the preset slots read the anchor line
   `bottom` instead of the bottom row, so they had no link. The QML check now fails on an id that
   has the name of a member (#185).
