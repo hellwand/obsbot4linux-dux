@@ -63,10 +63,11 @@ Item {
     }
 
     property int picked: 0
+    property var stepOptions: ["5°", "1°"]
     ChipRow {
         id: plainRow
         label: "Step"
-        options: ["5°", "1°"]
+        options: test.stepOptions
         currentIndex: test.picked
         onSelected: index => test.picked = index
     }
@@ -130,6 +131,9 @@ Item {
         expect("plain row: a click", plainRow, 0);
         test.picked = 1;
         expect("plain row: value changes after a click", plainRow, 1);
+        // right-aligned: the chips are reversed, so a third option moves every chip
+        test.stepOptions = ["5°", "1°", "0.1°"];
+        expect("plain row: the options change", plainRow, 1);
 
         console.log("check-components: " + passed + " passed, " + failed + " failed");
         Qt.exit(failed === 0 && passed > 0 ? 0 : 1);

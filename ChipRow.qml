@@ -57,4 +57,6 @@ Item {
     // currentIndex took its new value; a handler on the source of the binding (such as
     // SettingChips' currentChoice) can run before it and copy the old index.
     onCurrentIndexChanged: sync()
+    // In the right-aligned layout the chip of an option depends on the number of options
+    onOptionsChanged: sync()
 }
