@@ -26,6 +26,7 @@ jobs:
         with:
           persist-credentials: false
       - run: bash scripts/check-qml.sh
+      - run: bash scripts/check-components.sh
 
   # The JavaScript modules (lib/*.mjs): their tests in node and in the QML engine.
   js:

@@ -8,6 +8,11 @@ the change) are credited at the end of their line as `(#N, thanks @handle)`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Chip rows highlight the value the camera reports after every change: the tracking mode chips in
+  the desktop widget and in the popout kept the previous mode highlighted (#189).
+
 ## [1.0.0] - 2026-11-26
 
 Needs obsbot4linux 1.0 (protocol 2). Update the widget together with the tool, enable the daemon's

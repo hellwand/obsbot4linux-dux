@@ -131,13 +131,6 @@ SectionCard {
         }
     }
 
-    Connections {
-        target: section.ctl
-        function onFineGimbalChanged() {
-            stepRow.sync();
-        }
-    }
-
     // The pose the camera takes at power-on; shown only when obsbot4linux reports it
     Item {
         width: parent.width

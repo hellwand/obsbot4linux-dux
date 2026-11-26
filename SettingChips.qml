@@ -32,5 +32,4 @@ ChipRow {
         else
             row.sync();
     }
-    onCurrentChoiceChanged: sync()
 }

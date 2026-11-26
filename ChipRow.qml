@@ -47,8 +47,14 @@ Item {
         onSelectionChanged: index => row.selected(row.chipIndex(index))
     }
 
-    // A click assigns currentIndex and breaks the binding; call after the state was re-read
+    // A click assigns chips.currentIndex and breaks its binding; call after the state was re-read
+    // when the shown value may not have changed (a click on a chip that sends nothing)
     function sync() {
         chips.currentIndex = row.chipIndex(row.currentIndex);
     }
+
+    // The highlighted chip follows the shown value whatever changed it. This handler runs after
+    // currentIndex took its new value; a handler on the source of the binding (such as
+    // SettingChips' currentChoice) can run before it and copy the old index.
+    onCurrentIndexChanged: sync()
 }

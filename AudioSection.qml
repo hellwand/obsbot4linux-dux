@@ -74,7 +74,6 @@ SectionCard {
             else
                 pickupRow.sync();
         }
-        onCurrentIndexChanged: sync()
     }
 
     SettingSlider {

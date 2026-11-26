@@ -79,7 +79,6 @@ SectionCard {
             else
                 timeRow.sync();
         }
-        onCurrentIndexChanged: sync()
     }
 
     // own_image shows when the camera reports it; it cannot be picked
